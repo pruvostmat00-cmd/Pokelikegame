@@ -1432,13 +1432,15 @@ function renderPolishedMap(){
   const c=document.getElementById("map");if(!c)return;
   const w=Math.max(320,Math.floor(c.clientWidth||window.innerWidth));
   const h=Math.max(240,Math.floor(c.clientHeight||window.innerHeight-34));
-  c.width=w;c.height=h;c.imageSmoothingEnabled=false;
-  c.clearRect(0,0,w,h);
+  c.width=w;c.height=h;
+  const ctx=c.getContext("2d");
+  ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,w,h);
   const scale=Math.min(w/480,h/352);
   const ox=(w-480*scale)/2,oy=(h-352*scale)/2;
-  c.save();c.translate(ox,oy);c.scale(scale,scale);
-  if(currentScene==="home")renderHome(c);else renderWorld(c);drawPlayer(c);
-  c.restore();
+  ctx.save();ctx.translate(ox,oy);ctx.scale(scale,scale);
+  if(currentScene==="home")renderHome(ctx);else renderWorld(ctx);drawPlayer(ctx);
+  ctx.restore();
 }
 window.renderMap=renderPolishedMap;
 window.buildMap=function(){renderPolishedMap();};
