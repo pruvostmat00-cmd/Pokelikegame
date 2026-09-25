@@ -6,22 +6,28 @@
 <title>Pokelikegame</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:#151b17}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
 body{font-family:monospace;color:#172018;image-rendering:pixelated}
-#game{width:min(100%,520px);min-height:100vh;margin:auto;background:#d8c58c}
-#game>h1{margin:0;height:34px;background:#273d2c;color:#f5e7af;display:flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:2px;border-bottom:3px solid #142319}
+#game{position:fixed;inset:0;width:100vw;height:100dvh;min-height:0;margin:0;background:#d8c58c}
+#game>h1{display:none}
 .screen{display:none}.screen.active{display:block!important}
-#exploreScreen{padding:7px}
+#exploreScreen{position:absolute;inset:0;padding:0;background:#6f9d4a}
+#exploreScreen .world-topbar{position:absolute;z-index:5;top:0;left:0;right:0;height:34px;padding:0 12px;background:rgba(35,55,35,.92);color:#f5e7af;font-size:12px;border-bottom:2px solid #162517}
+#exploreScreen .map-wrap{position:absolute;inset:34px 0 0;border:0;padding:0;box-shadow:none;background:#6f9d4a}
+#exploreScreen #map{width:100%;height:100%;aspect-ratio:auto;display:block}
+#exploreScreen .map-hint{left:12px;right:12px;bottom:74px}
+#exploreScreen .map-log{position:absolute;z-index:5;left:10px;right:10px;bottom:8px;margin:0;min-height:56px;padding:8px;background:rgba(243,226,173,.94);border:2px solid #6b5632;box-shadow:2px 2px 0 #9a8050;font-size:11px}
+
 .world-topbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 4px;font-size:11px;color:#34422c}
 .map-wrap{position:relative;border:5px solid #25251e;background:#111711;padding:2px;box-shadow:0 4px 0 #0a0d0a}
 #map{display:block;width:100%;height:auto;aspect-ratio:15/11;image-rendering:pixelated;touch-action:none}
 .map-hint{position:absolute;left:13px;right:13px;bottom:10px;padding:5px 7px;background:rgba(248,231,176,.94);border:2px solid #5d4b2d;font-size:9px;text-align:center;box-shadow:2px 2px 0 #352c1d}
 .map-log{margin-top:6px;min-height:39px;padding:7px 8px;background:#f3e2ad;border:2px solid #6b5632;box-shadow:0 3px 0 #9a8050;font-size:10px;line-height:1.35}
-.dpad{width:132px;margin:8px auto 5px;display:grid;grid-template-columns:44px 44px 44px;grid-template-rows:38px 38px}
+.dpad{display:none}
 .dpad button{border:2px solid #263326;background:#3d573e;color:#f4e5ac;font-size:16px;font-weight:bold}.dpad .up{grid-column:2}.dpad .left{grid-column:1;grid-row:2}.dpad .down{grid-column:2;grid-row:2}.dpad .right{grid-column:3;grid-row:2}
-.explore-team{padding:6px;background:#ead7a0;border:2px solid #705936;font-size:10px}
+.explore-team{position:absolute;display:none}
 .explore-team-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #c5ae76}.explore-team-row:last-child{border:0}
-#combatScreen{padding:7px;background:#d8c58c;min-height:calc(100vh - 34px)}
+#combatScreen{position:absolute;inset:0;padding:44px 10px 10px;background:#d8c58c;min-height:100dvh;overflow:auto}
 #combatScreen h1{font-size:15px;text-align:center;margin:3px 0 7px}
 .arena,.panel{background:#f0dfaa;border:2px solid #6b5632;box-shadow:0 3px 0 #9a8050;padding:8px;margin-bottom:7px}
 .monster-row{display:flex;gap:8px;align-items:center}.monster-icon{width:54px;font-size:38px;text-align:center}.monster-info{flex:1}.monster-name{font-weight:bold;font-size:14px}.types{font-size:9px;margin:2px 0 5px}
@@ -1307,7 +1313,7 @@ document.addEventListener("keydown", e=>{
 });
 
 
-currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:1};buildMap();showExplore();
+currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:4};buildMap();showExplore();
 
 </script>
 <!-- polished original GBA-style renderer -->
@@ -1409,11 +1415,21 @@ function renderWorld(c){
   }
 }
 function renderPolishedMap(){
-  const c=document.getElementById("map");if(!c)return;c.width=480;c.height=352;c.imageSmoothingEnabled=false;c.clearRect(0,0,480,352);
+  const c=document.getElementById("map");if(!c)return;
+  const w=Math.max(320,Math.floor(c.clientWidth||window.innerWidth));
+  const h=Math.max(240,Math.floor(c.clientHeight||window.innerHeight-34));
+  c.width=w;c.height=h;c.imageSmoothingEnabled=false;
+  c.clearRect(0,0,w,h);
+  const scale=Math.min(w/480,h/352);
+  const ox=(w-480*scale)/2,oy=(h-352*scale)/2;
+  c.save();c.translate(ox,oy);c.scale(scale,scale);
   if(currentScene==="home")renderHome(c);else renderWorld(c);drawPlayer(c);
+  c.restore();
 }
 window.renderMap=renderPolishedMap;
 window.buildMap=function(){renderPolishedMap();};
 renderPolishedMap();
+window.addEventListener("resize",()=>renderPolishedMap());
+window.addEventListener("orientationchange",()=>setTimeout(renderPolishedMap,100));
 </script>
 </body></html>
