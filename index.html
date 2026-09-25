@@ -409,6 +409,48 @@ body{
   border:2px solid #665034;border-radius:6px;background:#e3cf96;color:#20251b;
 }
 .status{color:#20251b}
+
+/* COMMERCIAL VISUAL PASS */
+body{background:radial-gradient(circle at 50% 0%,#315d48 0,#183526 42%,#0d1d16 100%);font-family:"Trebuchet MS",system-ui,sans-serif}
+#game{max-width:540px;background:linear-gradient(180deg,#fff9df 0,#f0dfad 100%);box-shadow:0 0 0 1px rgba(255,255,255,.15),0 24px 70px rgba(0,0,0,.45)}
+#game>h1{height:52px;display:flex;align-items:center;justify-content:center;margin:0;background:linear-gradient(180deg,#4d9565 0,#286044 58%,#1d4a35 100%);border-bottom:3px solid #143625;font-size:17px;letter-spacing:1.5px;text-transform:uppercase}
+#starterScreen{min-height:calc(100vh - 52px);padding:0 12px 24px;background:radial-gradient(circle at 50% 9%,rgba(255,255,255,.7),transparent 30%),linear-gradient(#f9edc6,#e5ca8b)}
+.starter-intro{border:0;border-radius:0 0 18px 18px;padding:0 0 16px;background:none;box-shadow:none;overflow:visible}
+.starter-intro:after{display:none}
+.starter-hero{position:relative;height:205px;margin:0 -12px 16px;overflow:hidden;border-bottom:4px solid #7c6338;background:linear-gradient(180deg,#89c7df 0%,#b8e1dd 45%,#e6d08e 46%,#b0c778 47%,#6e9b4d 100%)}
+.starter-hero:before{content:"";position:absolute;left:-8%;right:-8%;bottom:48px;height:92px;background:radial-gradient(ellipse at 15% 100%,#4f7942 0 34%,transparent 35%),radial-gradient(ellipse at 43% 100%,#638e49 0 38%,transparent 39%),radial-gradient(ellipse at 78% 100%,#4b743d 0 35%,transparent 36%)}
+.starter-hero:after{content:"";position:absolute;width:128px;height:80px;left:50%;bottom:37px;transform:translateX(-50%);background:linear-gradient(145deg,transparent 0 18%,#8d4b39 19% 55%,transparent 56%),linear-gradient(90deg,#e7c98b 0 100%);clip-path:polygon(50% 0,100% 38%,92% 100%,8% 100%,0 38%);filter:drop-shadow(0 5px 0 rgba(36,52,29,.28))}
+.hero-sun{position:absolute;width:42px;height:42px;right:35px;top:28px;border-radius:50%;background:#ffe3a0;box-shadow:0 0 28px rgba(255,236,157,.75)}
+.hero-title{position:absolute;z-index:3;left:16px;bottom:14px;color:#fff8d7;font-size:30px;font-weight:900;text-shadow:0 3px 0 #29452e,0 6px 12px rgba(0,0,0,.35)}
+.hero-sub{position:absolute;z-index:3;left:18px;bottom:2px;color:#f5edca;font-size:11px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase}
+.starter-copy{text-align:center;padding:0 12px 4px}
+.starter-copy h2{margin:0 0 5px;color:#263d2a;font-size:22px}
+.starter-copy p{margin:0 auto;max-width:410px;color:#5b593e;font-size:13px;line-height:1.45}
+.starter-kicker{display:inline-block;margin-bottom:7px;padding:4px 9px;border-radius:999px;background:#d8bd72;color:#584523;font-size:9px;font-weight:900;letter-spacing:1.3px;text-transform:uppercase}
+.starter-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.starter-choice{display:block;min-height:178px;padding:8px;border:2px solid #6b522e;border-radius:13px;background:linear-gradient(180deg,#fff7d8,#ead29a);color:#16231b;text-align:center;box-shadow:0 4px 0 #987348,0 9px 18px rgba(79,57,26,.16);transition:transform .12s,box-shadow .12s}
+.starter-choice:hover{transform:translateY(-2px)}
+.starter-choice:active{transform:translateY(3px);box-shadow:0 1px 0 #987348}
+.starter-art{height:86px;margin:-2px -2px 6px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:56px;background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.85),transparent 38%),linear-gradient(145deg,#cce6ba,#8fba79);border:1px solid rgba(66,91,49,.2)}
+.starter-choice:nth-child(2) .starter-art{background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.9),transparent 38%),linear-gradient(145deg,#b9e0e5,#70aeba)}
+.starter-choice:nth-child(3) .starter-art{background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.9),transparent 38%),linear-gradient(145deg,#d8e7ad,#83aa64)}
+.starter-name{font-size:14px;font-weight:900}
+.starter-type{display:inline-block;margin-top:4px;padding:3px 7px;border-radius:999px;background:#385f43;color:#f7edc8;font-size:9px;font-weight:bold}
+.starter-stats{margin-top:7px;font-size:9px;line-height:1.25;color:#756746}
+.starter-arrow{display:none}
+.starter-footer{margin-top:13px;text-align:center;color:#746748;font-size:10px}
+.map-wrap{margin-top:10px;padding:6px;border:4px solid #273f2c;border-radius:13px;background:#172c20;box-shadow:0 7px 0 #102018,0 12px 20px rgba(25,38,24,.18),inset 0 0 0 2px #77905d}
+#map.map{border-radius:7px}
+.map-hud span{background:linear-gradient(#416c48,#2c5037);border:2px solid #203d2a;box-shadow:0 2px 0 #162b1d}
+.map-log{background:linear-gradient(#fff5d1,#ead7a2);border:2px solid #725c36}
+.dpad button{background:linear-gradient(#5b7658,#3e5941);border-color:#263d2b}
+.explore-team{background:linear-gradient(#fff5d1,#ead7a2)}
+#combatScreen{background:linear-gradient(#e8d6a4,#d8bd7b);min-height:calc(100vh - 52px);padding-top:10px}
+.arena{border:2px solid #624c30;box-shadow:0 4px 0 #a08350,0 10px 20px rgba(74,54,27,.1);background:linear-gradient(135deg,#fff5d3,#ead29a)}
+.attack{background:linear-gradient(#fff1c2,#e1c98c);border-color:#705633}
+.capture-button{background:linear-gradient(#fff4cc,#e3ca8e)}
+@media(max-width:390px){.starter-choice{min-height:165px}.starter-art{height:76px;font-size:48px}.starter-name{font-size:12px}.starter-stats{font-size:8px}}
+
 </style>
 </head>
 
@@ -420,11 +462,10 @@ body{
 
 <div id="starterScreen" class="screen active">
   <div class="starter-intro">
-    <div style="font-size:46px">🏡</div>
-    <h2>Bienvenue à Valbois</h2>
-    <p>Tu viens de recevoir l'autorisation de partir à l'aventure. Avant de quitter le village, choisis ta première créature.</p>
+    <div class="starter-hero"><div class="hero-sun"></div><div class="hero-title">VALBOIS</div><div class="hero-sub">Une nouvelle aventure commence</div></div>
+    <div class="starter-copy"><div class="starter-kicker">Premier compagnon</div><h2>Choisis ton partenaire</h2><p>Trois créatures. Trois tempéraments. Une aventure à écrire.</p></div>
   </div>
-  <div class="starter-list" id="starterList"></div>
+  <div class="starter-list" id="starterList"></div><div class="starter-footer">Chaque compagnon est unique : ses caractéristiques sont générées à sa rencontre.</div>
 </div>
 
 <div id="exploreScreen" class="screen">
