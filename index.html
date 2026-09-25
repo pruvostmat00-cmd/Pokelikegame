@@ -26,6 +26,56 @@ body {
   background: #202020;
 }
 
+.screen { display:none; }
+.screen.active { display:block; }
+
+.explore-card {
+  background:#292929;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:10px;
+}
+
+.area-title { font-size:22px; font-weight:bold; margin-bottom:6px; }
+.area-desc { font-size:13px; opacity:.8; line-height:1.4; }
+
+.explore-button {
+  width:100%;
+  border:0;
+  border-radius:13px;
+  padding:15px;
+  margin-top:9px;
+  background:#3a3a3a;
+  color:white;
+  font-weight:bold;
+  font-size:15px;
+}
+.explore-button:active { transform:scale(.98); }
+.explore-button.primary { background:#596b3d; }
+
+.resources {
+  display:flex;
+  gap:6px;
+  margin:10px 0;
+}
+.resource {
+  flex:1;
+  background:#333;
+  border-radius:10px;
+  padding:8px 4px;
+  text-align:center;
+  font-size:12px;
+}
+
+.log {
+  background:#1c1c1c;
+  border-radius:12px;
+  padding:10px;
+  min-height:64px;
+  font-size:13px;
+  line-height:1.4;
+}
+
 h1 {
   text-align: center;
   font-size: 22px;
@@ -195,7 +245,33 @@ h1 {
 
 <div id="game">
 
-<h1>⚔️ Pokelikegame</h1>
+<h1>🐾 Pokelikegame</h1>
+
+<div id="exploreScreen" class="screen active">
+  <div class="explore-card">
+    <div class="area-title" id="areaTitle">🌲 Bois de Brume</div>
+    <div class="area-desc" id="areaDesc">Une zone boisée proche du refuge. Des créatures sauvages peuvent apparaître dans les hautes herbes.</div>
+    <div class="resources">
+      <div class="resource">👣 Pas<br><b id="steps">0</b></div>
+      <div class="resource">⭐ XP<br><b id="xp">0</b></div>
+      <div class="resource">🪙 Éclats<br><b id="coins">0</b></div>
+    </div>
+    <button class="explore-button primary" onclick="exploreStep()">🌿 Explorer la zone</button>
+    <button class="explore-button" onclick="changeArea()">🗺️ Changer de zone</button>
+  </div>
+  <div class="explore-card">
+    <div class="panel-title">Journal</div>
+    <div class="log" id="exploreLog">Tu arrives dans le Bois de Brume. Commence ton exploration.</div>
+  </div>
+  <div class="explore-card">
+    <div class="panel-title">Équipe</div>
+    <div id="exploreTeam"></div>
+  </div>
+</div>
+
+<div id="combatScreen" class="screen">
+
+<h1>⚔️ Combat</h1>
 
 <div class="arena">
 
@@ -287,12 +363,15 @@ h1 {
 </div>
 
 
+<button class="reset" onclick="fleeBattle()">🏃 Fuir le combat</button>
+
 <button class="reset" onclick="newBattle()">
   🔄 Nouveau combat
 </button>
 
 </div>
 
+</div>
 
 <script>
 
@@ -615,6 +694,15 @@ let playerTeam = [];
 let enemy = null;
 let activeIndex = 0;
 let battleOver = false;
+let xp = 0;
+let coins = 0;
+let steps = 0;
+let areaIndex = 0;
+const AREAS = [
+  {name:"🌲 Bois de Brume", desc:"Une zone boisée proche du refuge. Des créatures sauvages peuvent apparaître dans les hautes herbes."},
+  {name:"🪨 Falaises Rouges", desc:"Des rochers escarpés où les espèces Roche, Feu et Air sont plus fréquentes."},
+  {name:"❄️ Vallée Blanche", desc:"Une vallée froide où l'on peut rencontrer des espèces Glace, Eau et Dragon."}
+];
 
 
 function randomInt(min,max) {
@@ -923,12 +1011,19 @@ function useAttack(attack) {
 
     battleOver = true;
 
+    const rewardXp = randomInt(4, 8);
+    const rewardCoins = randomInt(2, 6);
+    xp += rewardXp;
+    coins += rewardCoins;
+
     document.getElementById("message").textContent =
-      "🏆 Victoire ! " +
-      enemy.name +
-      " est K.O.";
+      "🏆 Victoire ! " + enemy.name + " est K.O.";
 
     renderAttacks();
+
+    setTimeout(() => {
+      showExplore("Victoire ! +" + rewardXp + " XP et +" + rewardCoins + " éclats. Tu reprends ton exploration.");
+    }, 900);
 
     return;
   }
@@ -1069,6 +1164,95 @@ function switchMonster(index) {
 }
 
 
+function showExplore(logText) {
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("exploreScreen").classList.add("active");
+  document.getElementById("exploreLog").textContent = logText;
+  updateExploreUI();
+}
+
+function showCombat() {
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.add("active");
+}
+
+function updateExploreUI() {
+  const area = AREAS[areaIndex];
+  document.getElementById("areaTitle").textContent = area.name;
+  document.getElementById("areaDesc").textContent = area.desc;
+  document.getElementById("steps").textContent = steps;
+  document.getElementById("xp").textContent = xp;
+  document.getElementById("coins").textContent = coins;
+
+  const box = document.getElementById("exploreTeam");
+  box.innerHTML = playerTeam.map((m,i) =>
+    '<div style="padding:7px 0;border-bottom:1px solid #3a3a3a;font-size:13px;">' +
+    m.icon + ' <b>' + m.name + '</b> — ' + m.hp + '/' + m.maxHp + ' PV' +
+    (i === activeIndex ? ' · actif' : '') +
+    '</div>'
+  ).join("");
+}
+
+function exploreStep() {
+  steps++;
+  const roll = Math.random();
+
+  if (roll < 0.32) {
+    const species = SPECIES[Math.floor(Math.random() * SPECIES.length)];
+    enemy = generateMonster(species);
+    battleOver = false;
+    activeIndex = playerTeam.findIndex(m => m.hp > 0);
+    if (activeIndex < 0) {
+      playerTeam.forEach(m => m.hp = m.maxHp);
+      activeIndex = 0;
+    }
+    showCombat();
+    document.getElementById("message").textContent =
+      "⚠️ Une créature sauvage apparaît : " + enemy.name + " !";
+    render();
+    return;
+  }
+
+  if (roll < 0.52) {
+    const found = randomInt(1, 3);
+    coins += found;
+    updateExploreUI();
+    document.getElementById("exploreLog").textContent =
+      "Tu trouves " + found + " éclat" + (found > 1 ? "s" : "") + " abandonné" + (found > 1 ? "s" : "") + " sur le chemin.";
+    return;
+  }
+
+  if (roll < 0.62) {
+    const heal = randomInt(8, 18);
+    playerTeam.forEach(m => m.hp = Math.min(m.maxHp, m.hp + heal));
+    updateExploreUI();
+    document.getElementById("exploreLog").textContent =
+      "🌿 Une source claire te permet de récupérer " + heal + " PV à chaque membre de l'équipe.";
+    return;
+  }
+
+  updateExploreUI();
+  const messages = [
+    "Tu avances prudemment. Le vent fait bouger les hautes herbes.",
+    "Tu aperçois des traces inconnues, mais la créature a déjà disparu.",
+    "Rien à signaler... pour l'instant.",
+    "Tu découvres un passage qui pourrait mener plus loin dans la zone."
+  ];
+  document.getElementById("exploreLog").textContent = messages[Math.floor(Math.random() * messages.length)];
+}
+
+function changeArea() {
+  areaIndex = (areaIndex + 1) % AREAS.length;
+  document.getElementById("exploreLog").textContent =
+    "Tu changes de zone et arrives dans " + AREAS[areaIndex].name + ".";
+  updateExploreUI();
+}
+
+function fleeBattle() {
+  if (battleOver) return;
+  showExplore("🏃 Tu prends la fuite. La créature sauvage disparaît dans les environs.");
+}
+
 function newBattle() {
 
   battleOver = false;
@@ -1109,6 +1293,7 @@ function newBattle() {
 
 
 newBattle();
+showExplore("Tu arrives au refuge. Ton équipe est prête à partir.");
 
 </script>
 
