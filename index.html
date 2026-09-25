@@ -1237,7 +1237,7 @@ renderMap();
     document.getElementById("exploreLog").textContent =
       messages[Math.floor(Math.random()*messages.length)];
 
-    if(Math.random() < MAPS[areaIndex].encounterRate){
+    if(Math.random() < (currentScene==="route" ? MAPS[2].encounterRate : 0)){
       startWildEncounter();
       return;
     }
@@ -1313,7 +1313,7 @@ document.addEventListener("keydown", e=>{
 });
 
 
-currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:4};buildMap();showExplore();
+currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:4};
 
 </script>
 <!-- polished original GBA-style renderer -->
@@ -1428,8 +1428,23 @@ function renderPolishedMap(){
 }
 window.renderMap=renderPolishedMap;
 window.buildMap=function(){renderPolishedMap();};
-renderPolishedMap();
+
+function startGame(){
+  try{
+    currentScene="home";
+    mapData=MAPS[0].layout.slice();
+    playerPos={x:7,y:4};
+    document.getElementById("exploreScreen").classList.add("active");
+    document.getElementById("combatScreen").classList.remove("active");
+    updateExploreUI();
+    renderPolishedMap();
+  }catch(err){
+    document.body.innerHTML='<div style="padding:24px;font:16px monospace;background:#1b2419;color:#f5e7af;height:100vh">ERREUR DE DÉMARRAGE<br><br>'+String(err.message||err).replace(/</g,"&lt;")+'</div>';
+  }
+}
 window.addEventListener("resize",()=>renderPolishedMap());
 window.addEventListener("orientationchange",()=>setTimeout(renderPolishedMap,100));
+if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",startGame);
+else startGame();
 </script>
 </body></html>
