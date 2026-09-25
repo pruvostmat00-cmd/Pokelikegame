@@ -784,6 +784,7 @@ function renderAttacks() {
 
       <div class="attack-info">
         ${attack.type} · ${attack.category} ·
+        ${attack.power > 0 ? attack.power + " PUI · " : ""}
         ${attack.accuracy}% ·
         ${formatMultiplier(multiplier)}
       </div>
