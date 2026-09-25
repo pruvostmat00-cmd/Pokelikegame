@@ -361,6 +361,61 @@ h1 {
 }
 .explore-team-row:last-child { border-bottom:0; }
 
+
+/* --- Direction artistique rétro RPG --- */
+body { background:#102015; font-family:"Trebuchet MS",Arial,sans-serif; }
+#game { background:#d7c79b; color:#172018; padding:0; overflow:hidden; }
+#game h1 { color:#172018; text-shadow:1px 1px 0 #fff2c2; }
+#starterScreen { padding:18px 14px 24px; }
+.starter-intro {
+  background:linear-gradient(#fff4c9,#ead69c);
+  border:3px solid #4d3925;
+  border-radius:14px;
+  padding:16px;
+  text-align:center;
+  box-shadow:0 4px 0 #6b5234;
+}
+.starter-intro h2 { margin:2px 0 6px; font-size:22px; }
+.starter-intro p { margin:0; font-size:13px; line-height:1.45; }
+.starter-list { display:grid; gap:10px; margin-top:12px; }
+.starter-choice {
+  display:grid; grid-template-columns:72px 1fr auto; align-items:center; gap:10px;
+  width:100%; border:3px solid #59432b; border-radius:13px;
+  background:#f4e7b7; color:#1d241b; padding:10px; text-align:left;
+  box-shadow:0 3px 0 #816342; touch-action:manipulation;
+}
+.starter-choice:active { transform:translateY(2px); box-shadow:0 1px 0 #816342; }
+.starter-art { font-size:52px; text-align:center; }
+.starter-name { font-size:17px; font-weight:bold; }
+.starter-type { font-size:12px; margin-top:3px; opacity:.75; }
+.starter-stats { font-size:10px; margin-top:5px; opacity:.7; }
+.starter-arrow { font-size:22px; }
+.map-wrap { background:#304c2a; border:5px solid #463625; border-radius:8px; padding:4px; box-shadow:0 4px 0 #1c2819; }
+.map { background:#73a84b; gap:0; }
+.tile { font-size:clamp(11px,3.6vw,19px); overflow:hidden; }
+.tile.grass {
+  background:
+    radial-gradient(circle at 25% 30%,#91c65e 0 7%,transparent 8%),
+    radial-gradient(circle at 70% 70%,#5d963d 0 6%,transparent 7%),
+    #76ad4e;
+}
+.tile.path { background:linear-gradient(135deg,#cdb17a 25%,#b99b63 25%,#b99b63 50%,#cdb17a 50%,#cdb17a 75%,#b99b63 75%); background-size:8px 8px; }
+.tile.water { background:repeating-linear-gradient(0deg,#4f94b4 0 4px,#6bb0c7 4px 7px); }
+.tile.tree { background:#44793a; font-size:clamp(13px,4.4vw,22px); }
+.tile.house { background:#e2c58b; }
+.tile.roof { background:linear-gradient(135deg,#a74f3d 0 50%,#8c3e32 50%); }
+.tile.fence { background:#9f865a; }
+.tile.flower { background:#76ad4e; }
+.map-hud span { background:#31422d; color:#fff7d5; }
+.map-log { background:#263822; border-color:#4e6b43; color:#fff7d5; }
+.dpad button { background:#4d5d45; border-color:#283326; }
+.explore-team { background:#f1e3b3; border:2px solid #675035; color:#1d241b; }
+.explore-team-row { border-color:#c7b683; }
+.capture-panel { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.capture-button { border:3px solid #5b4028; border-radius:11px; padding:12px 8px; background:#f0dfaa; color:#201f17; font-weight:bold; }
+.capture-button:active { transform:scale(.98); }
+.capture-button:disabled { opacity:.45; }
+
 </style>
 </head>
 
@@ -369,6 +424,15 @@ h1 {
 <div id="game">
 
 <h1>🐾 Pokelikegame</h1>
+
+<div id="starterScreen" class="screen active">
+  <div class="starter-intro">
+    <div style="font-size:46px">🏡</div>
+    <h2>Bienvenue à Valbois</h2>
+    <p>Tu viens de recevoir l'autorisation de partir à l'aventure. Avant de quitter le village, choisis ta première créature.</p>
+  </div>
+  <div class="starter-list" id="starterList"></div>
+</div>
 
 <div id="exploreScreen" class="screen active">
   <h1>🌿 Exploration</h1>
@@ -472,6 +536,1474 @@ h1 {
   <div class="attacks" id="attacks"></div>
 
 </div>
+
+<div class="capture-panel">
+  <button class="capture-button" id="captureButton" type="button" onclick="attemptCapture()">🔴 Capturer</button>
+  <button class="capture-button" type="button" onclick="fleeBattle()">🏃 Fuir</button>
+</div>
+
+
+
+<div class="panel">
+
+  <div class="panel-title">Statistiques</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div style="font-size:12px;margin-top:7px;">
+    Talent : <b id="talent">—</b>
+  </div>
+
+</div>
+
+
+<button class="reset" onclick="fleeBattle()">🏃 Fuir le combat</button>
+
+<button class="reset" onclick="newBattle()">
+  🔄 Nouveau combat
+</button>
+
+</div>
+
+</div>
+
+<script>
+
+const TYPES = {
+  "Neutre": {},
+  "Feu": {
+    "Plante": 1.5,
+    "Glace": 1.5,
+    "Eau": 0.7,
+    "Roche": 0.7
+  },
+  "Eau": {
+    "Feu": 1.5,
+    "Roche": 1.5,
+    "Plante": 0.7,
+    "Électrique": 0.7
+  },
+  "Plante": {
+    "Eau": 1.5,
+    "Roche": 1.5,
+    "Feu": 0.7,
+    "Glace": 0.7
+  },
+  "Électrique": {
+    "Eau": 1.5,
+    "Air": 1.5,
+    "Roche": 0.7
+  },
+  "Roche": {
+    "Feu": 1.5,
+    "Glace": 1.5,
+    "Air": 1.5,
+    "Eau": 0.7,
+    "Plante": 0.7
+  },
+  "Air": {
+    "Plante": 1.5,
+    "Électrique": 0.7,
+    "Roche": 0.7
+  },
+  "Glace": {
+    "Plante": 1.5,
+    "Dragon": 1.5,
+    "Feu": 0.7
+  },
+  "Dragon": {
+    "Dragon": 1.5,
+    "Glace": 0.7
+  },
+  "Ténèbres": {
+    "Psy": 1.5
+  },
+  "Psy": {
+    "Ténèbres": 0.7
+  },
+  "Poison": {
+    "Plante": 1.5,
+    "Roche": 0.7
+  }
+};
+
+
+const SPECIES = [
+
+  {
+    name: "Murin",
+    icon: "🐭",
+    types: ["Neutre"],
+    stats: {
+      vitalite:[45,105],
+      force:[35,105],
+      puissance:[30,100],
+      resistance:[35,100],
+      vitesse:[40,110]
+    },
+    talent: "Instinct",
+    attacks: [
+      ["Griffe","Neutre","Physique",40,100],
+      ["Charge","Neutre","Physique",45,95],
+      ["Vive-attaque","Neutre","Physique",35,100],
+      ["Ruse","Ténèbres","Physique",45,100]
+    ]
+  },
+
+  {
+    name: "Salamèche",
+    icon: "🔥",
+    types: ["Feu"],
+    stats: {
+      vitalite:[35,75],
+      force:[55,110],
+      puissance:[45,105],
+      resistance:[30,65],
+      vitesse:[70,125]
+    },
+    talent: "Brasier",
+    attacks: [
+      ["Flammèche","Feu","Spéciale",40,100],
+      ["Griffe","Neutre","Physique",40,100],
+      ["Braises","Feu","Spéciale",55,95],
+      ["Crocs brûlants","Feu","Physique",60,95],
+      ["Déflagration","Feu","Spéciale",90,85]
+    ]
+  },
+
+  {
+    name: "Néréide",
+    icon: "💧",
+    types: ["Eau"],
+    stats: {
+      vitalite:[55,100],
+      force:[40,90],
+      puissance:[45,105],
+      resistance:[50,100],
+      vitesse:[40,90]
+    },
+    talent: "Torrent",
+    attacks: [
+      ["Éclaboussure","Eau","Spéciale",35,100],
+      ["Charge aqueuse","Eau","Physique",45,100],
+      ["Jet d'eau","Eau","Spéciale",55,100],
+      ["Vague","Eau","Spéciale",70,95],
+      ["Raz-de-marée","Eau","Spéciale",95,80]
+    ]
+  },
+
+  {
+    name: "Mousselet",
+    icon: "🌿",
+    types: ["Plante"],
+    stats: {
+      vitalite:[70,125],
+      force:[35,85],
+      puissance:[35,90],
+      resistance:[65,120],
+      vitesse:[25,70]
+    },
+    talent: "Régénération",
+    attacks: [
+      ["Fouet-vigne","Plante","Physique",45,100],
+      ["Épine","Plante","Physique",40,100],
+      ["Spore","Plante","Statut",0,90],
+      ["Sève","Plante","Spéciale",55,100],
+      ["Drainage","Plante","Spéciale",60,100]
+    ]
+  },
+
+  {
+    name: "Fulgur",
+    icon: "⚡",
+    types: ["Électrique"],
+    stats: {
+      vitalite:[30,60],
+      force:[35,80],
+      puissance:[40,105],
+      resistance:[30,65],
+      vitesse:[90,150]
+    },
+    talent: "Paratonnerre",
+    attacks: [
+      ["Étincelle","Électrique","Physique",40,100],
+      ["Éclair","Électrique","Spéciale",50,100],
+      ["Arc électrique","Électrique","Spéciale",65,95],
+      ["Surcharge","Électrique","Spéciale",80,90],
+      ["Tonnerre","Électrique","Spéciale",95,85]
+    ]
+  },
+
+  {
+    name: "Rocorne",
+    icon: "🪨",
+    types: ["Roche"],
+    stats: {
+      vitalite:[80,140],
+      force:[65,130],
+      puissance:[20,55],
+      resistance:[80,135],
+      vitesse:[15,55]
+    },
+    talent: "Carapace",
+    attacks: [
+      ["Écrasement","Roche","Physique",45,100],
+      ["Jet de pierre","Roche","Physique",50,95],
+      ["Coup de roc","Roche","Physique",65,90],
+      ["Mur de pierre","Roche","Statut",0,100],
+      ["Séisme","Roche","Physique",90,85]
+    ]
+  },
+
+  {
+    name: "Noxelin",
+    icon: "🌑",
+    types: ["Ténèbres"],
+    stats: {
+      vitalite:[40,85],
+      force:[45,105],
+      puissance:[45,105],
+      resistance:[35,80],
+      vitesse:[55,115]
+    },
+    talent: "Traqueur",
+    attacks: [
+      ["Morsure","Ténèbres","Physique",45,100],
+      ["Feinte","Ténèbres","Physique",50,100],
+      ["Ruse","Ténèbres","Physique",55,95],
+      ["Provocation","Ténèbres","Statut",0,100],
+      ["Ombre","Ténèbres","Spéciale",75,90]
+    ]
+  },
+
+  {
+    name: "Aéroptère",
+    icon: "🪽",
+    types: ["Air"],
+    stats: {
+      vitalite:[30,70],
+      force:[40,95],
+      puissance:[35,85],
+      resistance:[35,75],
+      vitesse:[65,125]
+    },
+    talent: "Agilité",
+    attacks: [
+      ["Picore","Air","Physique",40,100],
+      ["Rafale","Air","Spéciale",45,100],
+      ["Serre","Air","Physique",55,95],
+      ["Plongeon","Air","Physique",70,90],
+      ["Ouragan","Air","Spéciale",95,80]
+    ]
+  },
+
+  {
+    name: "Venimite",
+    icon: "☠️",
+    types: ["Poison"],
+    stats: {
+      vitalite:[45,95],
+      force:[35,85],
+      puissance:[40,95],
+      resistance:[50,105],
+      vitesse:[35,90]
+    },
+    talent: "Toxique",
+    attacks: [
+      ["Dard","Poison","Physique",40,100],
+      ["Poison","Poison","Statut",0,90],
+      ["Morsure venimeuse","Poison","Physique",55,95],
+      ["Acide","Poison","Spéciale",60,95],
+      ["Nuage toxique","Poison","Spéciale",80,85]
+    ]
+  },
+
+  {
+    name: "Cryolynx",
+    icon: "❄️",
+    types: ["Glace"],
+    stats: {
+      vitalite:[35,75],
+      force:[35,80],
+      puissance:[70,130],
+      resistance:[35,80],
+      vitesse:[45,100]
+    },
+    talent: "Givre",
+    attacks: [
+      ["Poudreuse","Glace","Spéciale",40,100],
+      ["Éclat glacé","Glace","Physique",45,100],
+      ["Souffle froid","Glace","Spéciale",55,100],
+      ["Cristallisation","Glace","Statut",0,100],
+      ["Blizzard","Glace","Spéciale",95,80]
+    ]
+  },
+
+  {
+    name: "Dracorne",
+    icon: "🐉",
+    types: ["Dragon"],
+    stats: {
+      vitalite:[50,125],
+      force:[40,135],
+      puissance:[40,135],
+      resistance:[40,120],
+      vitesse:[35,125]
+    },
+    talent: "Écailles",
+    attacks: [
+      ["Souffle draconique","Dragon","Spéciale",50,100],
+      ["Charge draconique","Dragon","Physique",55,95],
+      ["Hurlement","Neutre","Statut",0,100],
+      ["Rage draconique","Dragon","Physique",70,90],
+      ["Météore","Dragon","Spéciale",100,80]
+    ]
+  },
+
+  {
+    name: "Mimélite",
+    icon: "🔮",
+    types: ["Psy"],
+    stats: {
+      vitalite:[40,85],
+      force:[20,60],
+      puissance:[50,110],
+      resistance:[55,110],
+      vitesse:[45,100]
+    },
+    talent: "Esprit clair",
+    attacks: [
+      ["Choc mental","Psy","Spéciale",45,100],
+      ["Regard","Psy","Statut",0,100],
+      ["Confusion","Psy","Spéciale",50,100],
+      ["Miroir","Psy","Statut",0,90],
+      ["Télékinésie","Psy","Spéciale",70,90]
+    ]
+  }
+
+];
+
+
+let playerTeam = [];
+let enemy = null;
+let activeIndex = 0;
+let battleOver = false;
+let xp = 0;
+let coins = 0;
+let steps = 0;
+let areaIndex = 0;
+const AREAS = [
+  {name:"🌲 Bois de Brume", desc:"Une zone boisée proche du refuge. Des créatures sauvages peuvent apparaître dans les hautes herbes."},
+  {name:"🪨 Falaises Rouges", desc:"Des rochers escarpés où les espèces Roche, Feu et Air sont plus fréquentes."},
+  {name:"❄️ Vallée Blanche", desc:"Une vallée froide où l'on peut rencontrer des espèces Glace, Eau et Dragon."}
+];
+
+
+function randomInt(min,max) {
+  return Math.floor(Math.random() * (max-min+1)) + min;
+}
+
+
+function generateMonster(species) {
+
+  const s = species.stats;
+
+  const monster = {
+    name: species.name,
+    icon: species.icon,
+    types: [...species.types],
+
+    vitalite: randomInt(s.vitalite[0],s.vitalite[1]),
+    force: randomInt(s.force[0],s.force[1]),
+    puissance: randomInt(s.puissance[0],s.puissance[1]),
+    resistance: randomInt(s.resistance[0],s.resistance[1]),
+    vitesse: randomInt(s.vitesse[0],s.vitesse[1]),
+
+    talent: species.talent,
+
+    attacks: species.attacks
+      .slice()
+      .sort(() => Math.random() - .5)
+      .slice(0,4)
+      .map(a => ({
+        name:a[0],
+        type:a[1],
+        category:a[2],
+        power:a[3],
+        accuracy:a[4]
+      }))
+  };
+
+  monster.maxHp = monster.vitalite;
+  monster.hp = monster.maxHp;
+
+  return monster;
+}
+
+
+function effectiveness(attackType, defenderTypes) {
+
+  let multiplier = 1;
+
+  defenderTypes.forEach(type => {
+
+    if (TYPES[attackType] && TYPES[attackType][type]) {
+      multiplier *= TYPES[attackType][type];
+    }
+
+  });
+
+  return multiplier;
+}
+
+
+function formatMultiplier(value) {
+
+  if (value === 1.5) return "×1,5";
+  if (value === 0.7) return "×0,7";
+  if (value === 2.25) return "×2,25";
+  if (value === 0.49) return "×0,49";
+
+  return "×" + value;
+}
+
+
+function iconForCategory(category) {
+
+  if (category === "Physique") return "⚔️";
+  if (category === "Spéciale") return "✨";
+  return "🌀";
+
+}
+
+
+function render() {
+
+  const player = playerTeam[activeIndex];
+
+  document.getElementById("playerIcon").textContent = player.icon;
+  document.getElementById("playerName").textContent = player.name;
+  document.getElementById("playerTypes").textContent = player.types.join(" / ");
+
+  document.getElementById("enemyIcon").textContent = enemy.icon;
+  document.getElementById("enemyName").textContent = enemy.name;
+  document.getElementById("enemyTypes").textContent = enemy.types.join(" / ");
+
+  updateHp("player",player);
+  updateHp("enemy",enemy);
+
+  renderTeam();
+  renderAttacks();
+  renderStats();
+
+}
+
+
+function updateHp(side,monster) {
+
+  const percent = Math.max(0,(monster.hp / monster.maxHp) * 100);
+
+  document.getElementById(side + "HpBar").style.width = percent + "%";
+  document.getElementById(side + "HpText").textContent = monster.hp;
+  document.getElementById(side + "MaxHp").textContent = monster.maxHp;
+
+}
+
+
+function renderTeam() {
+
+  const container = document.getElementById("teamButtons");
+
+  container.innerHTML = "";
+
+  playerTeam.forEach((monster,index) => {
+
+    const button = document.createElement("button");
+
+    button.textContent =
+      monster.icon + " " +
+      monster.name +
+      " (" + monster.hp + "/" + monster.maxHp + ")";
+
+    if (index === activeIndex) {
+      button.classList.add("active");
+    }
+
+    if (monster.hp <= 0) {
+      button.disabled = true;
+    }
+
+    button.onclick = () => switchMonster(index);
+
+    container.appendChild(button);
+
+  });
+
+}
+
+
+function renderAttacks() {
+
+  const container = document.getElementById("attacks");
+
+  container.innerHTML = "";
+
+  const player = playerTeam[activeIndex];
+
+  player.attacks.forEach(attack => {
+
+    const button = document.createElement("button");
+
+    button.className = "attack";
+
+    const multiplier =
+      effectiveness(attack.type,enemy.types);
+
+    button.innerHTML = `
+      <div class="attack-name">
+        ${iconForCategory(attack.category)} ${attack.name}
+      </div>
+
+      <div class="attack-info">
+        ${attack.type} · ${attack.category} ·
+        ${attack.power > 0 ? attack.power + " PUI · " : ""}
+        ${attack.accuracy}% ·
+        ${formatMultiplier(multiplier)}
+      </div>
+    `;
+
+    button.disabled =
+      battleOver ||
+      player.hp <= 0 ||
+      enemy.hp <= 0;
+
+    button.onclick = () => useAttack(attack);
+
+    container.appendChild(button);
+
+  });
+
+}
+
+
+function renderStats() {
+
+  const player = playerTeam[activeIndex];
+
+  document.getElementById("stats").innerHTML = `
+
+    <div class="stat">❤️ Vitalité : ${player.vitalite}</div>
+    <div class="stat">⚔️ Force : ${player.force}</div>
+    <div class="stat">✨ Puissance : ${player.puissance}</div>
+    <div class="stat">🛡️ Résistance : ${player.resistance}</div>
+    <div class="stat">💨 Vitesse : ${player.vitesse}</div>
+
+  `;
+
+  document.getElementById("talent").textContent =
+    player.talent;
+
+}
+
+
+function useAttack(attack) {
+
+  if (battleOver) return;
+
+  const player = playerTeam[activeIndex];
+
+  if (player.hp <= 0 || enemy.hp <= 0) return;
+
+  let hit =
+    Math.random() * 100 <= attack.accuracy;
+
+  if (!hit) {
+
+    document.getElementById("message").textContent =
+      player.name + " utilise " +
+      attack.name +
+      " mais rate !";
+
+    setTimeout(enemyTurn,700);
+
+    return;
+  }
+
+
+  if (attack.category === "Statut") {
+
+    document.getElementById("message").textContent =
+      player.name + " utilise " +
+      attack.name + " !";
+
+    setTimeout(enemyTurn,700);
+
+    return;
+  }
+
+
+  let attackStat =
+    attack.category === "Physique"
+    ? player.force
+    : player.puissance;
+
+
+  let defense =
+    enemy.resistance;
+
+
+  const multiplier =
+    effectiveness(attack.type,enemy.types);
+
+
+  let damage =
+    Math.max(
+      1,
+      Math.round(
+        (attack.power * attackStat / Math.max(20,defense))
+        * 0.35
+        * multiplier
+      )
+    );
+
+
+  let critical =
+    Math.random() < 0.08;
+
+
+  if (critical) {
+    damage = Math.round(damage * 1.5);
+  }
+
+
+  enemy.hp =
+    Math.max(0,enemy.hp - damage);
+
+
+  let text =
+    player.name +
+    " utilise " +
+    attack.name +
+    " : -" +
+    damage +
+    " PV";
+
+
+  if (critical) {
+    text += " ✨ CRITIQUE !";
+  }
+
+
+  document.getElementById("message").textContent =
+    text;
+
+
+  render();
+
+
+  if (enemy.hp <= 0) {
+
+    battleOver = true;
+
+    const rewardXp = randomInt(4, 8);
+    const rewardCoins = randomInt(2, 6);
+    xp += rewardXp;
+    coins += rewardCoins;
+
+    document.getElementById("message").textContent =
+      "🏆 Victoire ! " + enemy.name + " est K.O.";
+
+    renderAttacks();
+
+    setTimeout(() => {
+      showExplore("Victoire ! +" + rewardXp + " XP et +" + rewardCoins + " éclats. Tu reprends ton exploration.");
+    }, 900);
+
+    return;
+  }
+
+
+  setTimeout(enemyTurn,700);
+
+}
+
+
+function enemyTurn() {
+
+  if (battleOver || enemy.hp <= 0) return;
+
+  const player = playerTeam[activeIndex];
+
+  const attacks = SPECIES
+    .find(s => s.name === enemy.name)
+    .attacks;
+
+  const raw =
+    attacks[Math.floor(Math.random() * attacks.length)];
+
+
+  const attack = {
+    name:raw[0],
+    type:raw[1],
+    category:raw[2],
+    power:raw[3],
+    accuracy:raw[4]
+  };
+
+
+  if (Math.random() * 100 > attack.accuracy) {
+
+    document.getElementById("message").textContent =
+      enemy.name +
+      " utilise " +
+      attack.name +
+      " mais rate !";
+
+    return;
+  }
+
+
+  if (attack.category === "Statut") {
+
+    document.getElementById("message").textContent =
+      enemy.name +
+      " utilise " +
+      attack.name +
+      " !";
+
+    return;
+  }
+
+
+  const attackStat =
+    attack.category === "Physique"
+    ? enemy.force
+    : enemy.puissance;
+
+
+  const multiplier =
+    effectiveness(attack.type,player.types);
+
+
+  let damage =
+    Math.max(
+      1,
+      Math.round(
+        (attack.power * attackStat /
+        Math.max(20,player.resistance))
+        * 0.35
+        * multiplier
+      )
+    );
+
+
+  player.hp =
+    Math.max(0,player.hp - damage);
+
+
+  document.getElementById("message").textContent =
+    enemy.name +
+    " utilise " +
+    attack.name +
+    " : -" +
+    damage +
+    " PV";
+
+
+  render();
+
+
+  if (player.hp <= 0) {
+
+    const alive =
+      playerTeam.some(m => m.hp > 0);
+
+    if (alive) {
+
+      document.getElementById("message").textContent =
+        player.name +
+        " est K.O. ! Choisis un autre monstre.";
+
+    } else {
+
+      battleOver = true;
+
+      document.getElementById("message").textContent =
+        "💀 Toute ton équipe est K.O.";
+
+    }
+
+  }
+
+}
+
+
+function switchMonster(index) {
+
+  if (battleOver) return;
+
+  if (index === activeIndex) return;
+
+  if (playerTeam[index].hp <= 0) return;
+
+  activeIndex = index;
+
+  document.getElementById("message").textContent =
+    "Tu envoies " +
+    playerTeam[index].name +
+    " !";
+
+  render();
+
+}
+
+
+function showExplore(logText) {
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("exploreScreen").classList.add("active");
+  document.getElementById("exploreLog").textContent = logText;
+  updateExploreUI();
+}
+
+function showCombat() {
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.add("active");
+}
+
+function updateExploreUI() {
+  const area = AREAS[areaIndex];
+  document.getElementById("areaTitle").textContent = area.name;
+  document.getElementById("areaDesc").textContent = area.desc;
+  document.getElementById("steps").textContent = steps;
+  document.getElementById("xp").textContent = xp;
+  document.getElementById("coins").textContent = coins;
+
+  const box = document.getElementById("exploreTeam");
+  box.innerHTML = playerTeam.map((m,i) =>
+    '<div style="padding:7px 0;border-bottom:1px solid #3a3a3a;font-size:13px;">' +
+    m.icon + ' <b>' + m.name + '</b> — ' + m.hp + '/' + m.maxHp + ' PV' +
+    (i === activeIndex ? ' · actif' : '') +
+    '</div>'
+  ).join("");
+}
+
+function exploreStep() {
+  steps++;
+  const roll = Math.random();
+
+  if (roll < 0.32) {
+    const species = SPECIES[Math.floor(Math.random() * SPECIES.length)];
+    enemy = generateMonster(species);
+    battleOver = false;
+    activeIndex = playerTeam.findIndex(m => m.hp > 0);
+    if (activeIndex < 0) {
+      playerTeam.forEach(m => m.hp = m.maxHp);
+      activeIndex = 0;
+    }
+    showCombat();
+    document.getElementById("message").textContent =
+      "⚠️ Une créature sauvage apparaît : " + enemy.name + " !";
+    render();
+    return;
+  }
+
+  if (roll < 0.52) {
+    const found = randomInt(1, 3);
+    coins += found;
+    updateExploreUI();
+    document.getElementById("exploreLog").textContent =
+      "Tu trouves " + found + " éclat" + (found > 1 ? "s" : "") + " abandonné" + (found > 1 ? "s" : "") + " sur le chemin.";
+    return;
+  }
+
+  if (roll < 0.62) {
+    const heal = randomInt(8, 18);
+    playerTeam.forEach(m => m.hp = Math.min(m.maxHp, m.hp + heal));
+    updateExploreUI();
+    document.getElementById("exploreLog").textContent =
+      "🌿 Une source claire te permet de récupérer " + heal + " PV à chaque membre de l'équipe.";
+    return;
+  }
+
+  updateExploreUI();
+  const messages = [
+    "Tu avances prudemment. Le vent fait bouger les hautes herbes.",
+    "Tu aperçois des traces inconnues, mais la créature a déjà disparu.",
+    "Rien à signaler... pour l'instant.",
+    "Tu découvres un passage qui pourrait mener plus loin dans la zone."
+  ];
+  document.getElementById("exploreLog").textContent = messages[Math.floor(Math.random() * messages.length)];
+}
+
+function changeArea() {
+  areaIndex = (areaIndex + 1) % AREAS.length;
+  document.getElementById("exploreLog").textContent =
+    "Tu changes de zone et arrives dans " + AREAS[areaIndex].name + ".";
+  updateExploreUI();
+}
+
+function fleeBattle() {
+  if (battleOver) return;
+  showExplore("🏃 Tu prends la fuite. La créature sauvage disparaît dans les environs.");
+}
+
+function newBattle() {
+  if(playerTeam.length===0){
+    showStarter();
+    return;
+  }
+  battleOver = false;
+  const alive = playerTeam.findIndex(m=>m.hp>0);
+  activeIndex = alive>=0 ? alive : 0;
+  const enemySpecies = SPECIES[Math.floor(Math.random()*SPECIES.length)];
+  enemy = generateMonster(enemySpecies);
+  document.getElementById("message").textContent = "Une créature sauvage apparaît !";
+  showCombat();
+  render();
+}!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pokelikegame — Prototype</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #151515;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
+
+#game {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: auto;
+  padding: 12px;
+  background: #202020;
+}
+
+.screen { display:none; }
+.screen.active { display:block; }
+
+.explore-card {
+  background:#292929;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:10px;
+}
+
+.area-title { font-size:22px; font-weight:bold; margin-bottom:6px; }
+.area-desc { font-size:13px; opacity:.8; line-height:1.4; }
+
+.explore-button {
+  width:100%;
+  border:0;
+  border-radius:13px;
+  padding:15px;
+  margin-top:9px;
+  background:#3a3a3a;
+  color:white;
+  font-weight:bold;
+  font-size:15px;
+}
+.explore-button:active { transform:scale(.98); }
+.explore-button.primary { background:#596b3d; }
+
+.resources {
+  display:flex;
+  gap:6px;
+  margin:10px 0;
+}
+.resource {
+  flex:1;
+  background:#333;
+  border-radius:10px;
+  padding:8px 4px;
+  text-align:center;
+  font-size:12px;
+}
+
+.log {
+  background:#1c1c1c;
+  border-radius:12px;
+  padding:10px;
+  min-height:64px;
+  font-size:13px;
+  line-height:1.4;
+}
+
+h1 {
+  text-align: center;
+  font-size: 22px;
+  margin: 5px 0 12px;
+}
+
+.arena {
+  background: #292929;
+  border-radius: 18px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.monster-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.monster-icon {
+  font-size: 58px;
+  width: 70px;
+  text-align: center;
+}
+
+.monster-info {
+  flex: 1;
+}
+
+.monster-name {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.types {
+  font-size: 13px;
+  opacity: .8;
+  margin: 3px 0 7px;
+}
+
+.hp-bg {
+  width: 100%;
+  height: 14px;
+  background: #555;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hp {
+  height: 100%;
+  width: 100%;
+  background: #49c95b;
+  transition: width .3s;
+}
+
+.hp-text {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.status {
+  text-align: center;
+  min-height: 42px;
+  padding: 8px;
+  font-size: 15px;
+}
+
+.attacks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.attack {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  background: #383838;
+  color: white;
+  text-align: left;
+  min-height: 70px;
+  font-size: 14px;
+}
+
+.attack:active {
+  transform: scale(.97);
+}
+
+.attack-name {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.attack-info {
+  margin-top: 5px;
+  font-size: 11px;
+  opacity: .8;
+}
+
+.attack:disabled {
+  opacity: .35;
+}
+
+.team {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.team button {
+  flex: 1;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 10px;
+  background: #333;
+  color: white;
+  font-size: 12px;
+}
+
+.team button.active {
+  outline: 2px solid white;
+}
+
+.team button:disabled {
+  opacity: .3;
+}
+
+.panel {
+  background: #292929;
+  border-radius: 15px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.panel-title {
+  font-weight: bold;
+  margin-bottom: 7px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.stat {
+  background: #333;
+  padding: 5px;
+  border-radius: 6px;
+}
+
+.reset {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+  background: #555;
+  color: white;
+  font-weight: bold;
+}
+
+/* --- Exploration type RPG rétro --- */
+#exploreScreen { padding-bottom: 18px; }
+#exploreScreen h1 { margin-bottom: 8px; }
+.map-wrap {
+  background:#20351f;
+  border:4px solid #151d16;
+  border-radius:12px;
+  padding:5px;
+  box-shadow: inset 0 0 0 2px #50634a;
+}
+.map {
+  display:grid;
+  grid-template-columns:repeat(15,1fr);
+  grid-template-rows:repeat(11,1fr);
+  aspect-ratio:15/11;
+  overflow:hidden;
+  border-radius:6px;
+  background:#78a94d;
+  image-rendering:pixelated;
+}
+.tile {
+  position:relative;
+  min-width:0;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(14px,4.5vw,24px);
+  user-select:none;
+}
+.tile.grass {
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.08) 25%,transparent 25%),
+    linear-gradient(45deg,rgba(30,90,35,.18) 25%,transparent 25%);
+  background-size:8px 8px;
+  background-color:#72aa4a;
+}
+.tile.path {
+  background:#c9a76a;
+  box-shadow:inset 0 0 0 1px rgba(100,75,35,.12);
+}
+.tile.water {
+  background:repeating-linear-gradient(0deg,#5a9cc1 0 5px,#69afd0 5px 8px);
+}
+.tile.tree {
+  background:#4d813c;
+  color:#18351c;
+}
+.tile.wall {
+  background:#66705c;
+}
+.tile.rock {
+  background:#8d8069;
+}
+.tile.flower { background-color:#72aa4a; }
+.player {
+  z-index:4;
+  font-size:clamp(20px,6vw,30px);
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.45));
+  animation:stepBob .22s ease-out;
+}
+@keyframes stepBob { 50% { transform:translateY(-2px); } }
+.map-hud {
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+  margin:8px 0 0;
+  font-size:12px;
+}
+.map-hud span {
+  background:#293529;
+  border-radius:8px;
+  padding:7px 9px;
+  flex:1;
+  text-align:center;
+}
+.map-log {
+  margin-top:8px;
+  background:#162016;
+  border:2px solid #3e533a;
+  border-radius:9px;
+  padding:9px;
+  min-height:42px;
+  font-size:12px;
+  line-height:1.35;
+}
+.dpad {
+  width:150px;
+  margin:10px auto 0;
+  display:grid;
+  grid-template-columns:repeat(3,50px);
+  grid-template-rows:repeat(2,50px);
+}
+.dpad button {
+  border:2px solid #202820;
+  background:#394739;
+  color:#fff;
+  font-size:21px;
+  font-weight:bold;
+  touch-action:manipulation;
+}
+.dpad button:active { background:#596b55; transform:scale(.96); }
+.dpad .up { grid-column:2; grid-row:1; border-radius:10px 10px 4px 4px; }
+.dpad .left { grid-column:1; grid-row:2; border-radius:10px 4px 4px 10px; }
+.dpad .down { grid-column:2; grid-row:2; border-radius:4px 4px 10px 10px; }
+.dpad .right { grid-column:3; grid-row:2; border-radius:4px 10px 10px 4px; }
+.explore-team {
+  background:#292929;
+  border-radius:12px;
+  padding:10px;
+  margin-top:10px;
+}
+.explore-team-row {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid #3a3a3a;
+  font-size:12px;
+}
+.explore-team-row:last-child { border-bottom:0; }
+
+
+/* --- Direction artistique rétro RPG --- */
+body { background:#102015; font-family:"Trebuchet MS",Arial,sans-serif; }
+#game { background:#d7c79b; color:#172018; padding:0; overflow:hidden; }
+#game h1 { color:#172018; text-shadow:1px 1px 0 #fff2c2; }
+#starterScreen { padding:18px 14px 24px; }
+.starter-intro {
+  background:linear-gradient(#fff4c9,#ead69c);
+  border:3px solid #4d3925;
+  border-radius:14px;
+  padding:16px;
+  text-align:center;
+  box-shadow:0 4px 0 #6b5234;
+}
+.starter-intro h2 { margin:2px 0 6px; font-size:22px; }
+.starter-intro p { margin:0; font-size:13px; line-height:1.45; }
+.starter-list { display:grid; gap:10px; margin-top:12px; }
+.starter-choice {
+  display:grid; grid-template-columns:72px 1fr auto; align-items:center; gap:10px;
+  width:100%; border:3px solid #59432b; border-radius:13px;
+  background:#f4e7b7; color:#1d241b; padding:10px; text-align:left;
+  box-shadow:0 3px 0 #816342; touch-action:manipulation;
+}
+.starter-choice:active { transform:translateY(2px); box-shadow:0 1px 0 #816342; }
+.starter-art { font-size:52px; text-align:center; }
+.starter-name { font-size:17px; font-weight:bold; }
+.starter-type { font-size:12px; margin-top:3px; opacity:.75; }
+.starter-stats { font-size:10px; margin-top:5px; opacity:.7; }
+.starter-arrow { font-size:22px; }
+.map-wrap { background:#304c2a; border:5px solid #463625; border-radius:8px; padding:4px; box-shadow:0 4px 0 #1c2819; }
+.map { background:#73a84b; gap:0; }
+.tile { font-size:clamp(11px,3.6vw,19px); overflow:hidden; }
+.tile.grass {
+  background:
+    radial-gradient(circle at 25% 30%,#91c65e 0 7%,transparent 8%),
+    radial-gradient(circle at 70% 70%,#5d963d 0 6%,transparent 7%),
+    #76ad4e;
+}
+.tile.path { background:linear-gradient(135deg,#cdb17a 25%,#b99b63 25%,#b99b63 50%,#cdb17a 50%,#cdb17a 75%,#b99b63 75%); background-size:8px 8px; }
+.tile.water { background:repeating-linear-gradient(0deg,#4f94b4 0 4px,#6bb0c7 4px 7px); }
+.tile.tree { background:#44793a; font-size:clamp(13px,4.4vw,22px); }
+.tile.house { background:#e2c58b; }
+.tile.roof { background:linear-gradient(135deg,#a74f3d 0 50%,#8c3e32 50%); }
+.tile.fence { background:#9f865a; }
+.tile.flower { background:#76ad4e; }
+.map-hud span { background:#31422d; color:#fff7d5; }
+.map-log { background:#263822; border-color:#4e6b43; color:#fff7d5; }
+.dpad button { background:#4d5d45; border-color:#283326; }
+.explore-team { background:#f1e3b3; border:2px solid #675035; color:#1d241b; }
+.explore-team-row { border-color:#c7b683; }
+.capture-panel { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
+.capture-button { border:3px solid #5b4028; border-radius:11px; padding:12px 8px; background:#f0dfaa; color:#201f17; font-weight:bold; }
+.capture-button:active { transform:scale(.98); }
+.capture-button:disabled { opacity:.45; }
+
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+<h1>🐾 Pokelikegame</h1>
+
+<div id="starterScreen" class="screen active">
+  <div class="starter-intro">
+    <div style="font-size:46px">🏡</div>
+    <h2>Bienvenue à Valbois</h2>
+    <p>Tu viens de recevoir l'autorisation de partir à l'aventure. Avant de quitter le village, choisis ta première créature.</p>
+  </div>
+  <div class="starter-list" id="starterList"></div>
+</div>
+
+<div id="exploreScreen" class="screen active">
+  <h1>🌿 Exploration</h1>
+  <div class="map-wrap">
+    <div class="map" id="map"></div>
+  </div>
+  <div class="map-hud">
+    <span>📍 <b id="areaTitle">Route 1</b></span>
+    <span>👣 Pas : <b id="steps">0</b></span>
+    <span>🪙 <b id="coins">0</b></span>
+  </div>
+  <div class="map-log" id="exploreLog">Déplace-toi dans la zone. Les hautes herbes peuvent cacher des créatures sauvages.</div>
+  <div class="dpad" aria-label="Contrôles de déplacement">
+    <button class="up" type="button" onclick="movePlayer(0,-1)">▲</button>
+    <button class="left" type="button" onclick="movePlayer(-1,0)">◀</button>
+    <button class="down" type="button" onclick="movePlayer(0,1)">▼</button>
+    <button class="right" type="button" onclick="movePlayer(1,0)">▶</button>
+  </div>
+  <div class="explore-team">
+    <div class="panel-title">Équipe</div>
+    <div id="exploreTeam"></div>
+  </div>
+</div>
+
+<div id="combatScreen" class="screen">
+
+<h1>⚔️ Combat</h1>
+
+<div class="arena">
+
+  <div class="monster-row">
+
+    <div class="monster-icon" id="enemyIcon">💧</div>
+
+    <div class="monster-info">
+
+      <div class="monster-name" id="enemyName">Néréide</div>
+
+      <div class="types" id="enemyTypes">Eau</div>
+
+      <div class="hp-bg">
+        <div class="hp" id="enemyHpBar"></div>
+      </div>
+
+      <div class="hp-text">
+        PV : <span id="enemyHpText">100</span> / <span id="enemyMaxHp">100</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="status" id="message">
+  À toi de jouer.
+</div>
+
+
+<div class="arena">
+
+  <div class="monster-row">
+
+    <div class="monster-icon" id="playerIcon">🔥</div>
+
+    <div class="monster-info">
+
+      <div class="monster-name" id="playerName">Salamèche</div>
+
+      <div class="types" id="playerTypes">Feu</div>
+
+      <div class="hp-bg">
+        <div class="hp" id="playerHpBar"></div>
+      </div>
+
+      <div class="hp-text">
+        PV : <span id="playerHpText">100</span> / <span id="playerMaxHp">100</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="panel">
+
+  <div class="panel-title">Ton équipe</div>
+
+  <div class="team" id="teamButtons"></div>
+
+</div>
+
+
+<div class="panel">
+
+  <div class="panel-title">Attaques</div>
+
+  <div class="attacks" id="attacks"></div>
+
+</div>
+
+<div class="capture-panel">
+  <button class="capture-button" id="captureButton" type="button" onclick="attemptCapture()">🔴 Capturer</button>
+  <button class="capture-button" type="button" onclick="fleeBattle()">🏃 Fuir</button>
+</div>
+
 
 
 <div class="panel">
@@ -1416,6 +2948,65 @@ function newBattle() {
 }
 
 
+
+// =========================
+// DÉPART + CAPTURE
+// =========================
+const STARTERS = ["Salamèche","Néréide","Mousselet"];
+
+function renderStarters(){
+  const box = document.getElementById("starterList");
+  box.innerHTML = STARTERS.map(name=>{
+    const s = SPECIES.find(x=>x.name===name);
+    const avg = Math.round((s.stats.vitalite[1]+s.stats.force[1]+s.stats.puissance[1]+s.stats.resistance[1]+s.stats.vitesse[1])/5);
+    return '<button class="starter-choice" type="button" onclick="chooseStarter(\''+name+'\')">' +
+      '<div class="starter-art">'+s.icon+'</div>' +
+      '<div><div class="starter-name">'+s.name+'</div><div class="starter-type">'+s.types.join(" / ")+'</div>' +
+      '<div class="starter-stats">Potentiel moyen : '+avg+' · Talent : '+s.talent+'</div></div><div class="starter-arrow">▶</div></button>';
+  }).join("");
+}
+
+function showStarter(){
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("starterScreen").classList.add("active");
+  renderStarters();
+}
+
+function chooseStarter(name){
+  const species = SPECIES.find(s=>s.name===name);
+  playerTeam = [generateMonster(species)];
+  activeIndex = 0;
+  battleOver = false;
+  playerTeam[0].hp = playerTeam[0].maxHp;
+  playerPos = {x:7,y:6};
+  mapData = MAPS[0].layout.slice();
+  document.getElementById("starterScreen").classList.remove("active");
+  showExplore("Tu sors de ta maison avec "+name+". La prairie juste au sud est couverte de hautes herbes.");
+  buildMap();
+}
+
+function attemptCapture(){
+  if(battleOver || !enemy || enemy.hp<=0) return;
+  if(playerTeam.length>=3){
+    document.getElementById("message").textContent = "Ton équipe est déjà complète (3 créatures).";
+    return;
+  }
+  const chance = Math.min(.78, .22 + (1 - enemy.hp/enemy.maxHp)*.55);
+  if(Math.random() < chance){
+    const caught = enemy;
+    caught.hp = caught.maxHp;
+    playerTeam.push(caught);
+    battleOver = true;
+    document.getElementById("message").textContent = "✨ Capturé ! "+caught.name+" rejoint ton équipe.";
+    render();
+    setTimeout(()=>showExplore("Tu as capturé "+caught.name+" ! Ton équipe compte maintenant "+playerTeam.length+" créature(s)."),900);
+  } else {
+    document.getElementById("message").textContent = "La créature se débat et s'échappe de la capsule !";
+    setTimeout(enemyTurn,650);
+  }
+}
+
 /* =========================
    EXPLORATION LIBRE RÉTRO
    ========================= */
@@ -1427,35 +3018,35 @@ let facing = "down";
 
 const MAPS = [
   {
-    name:"Route 1",
+    name:"Valbois — Route 1",
     encounterRate:.18,
     layout:[
       "TTTTTTTTTTTTTTT",
-      "TGGGGGGGGGGGGGT",
-      "TGGGPPPPPGGGGGT",
-      "TGGGPGGGPGGGGGT",
-      "TGGGPGGGPGGGGGT",
-      "TGGGPPPPPPGGGGT",
-      "TGGGGGGGGGGGGGT",
-      "TGGGGGWWWWGGGGT",
-      "TGGGGGWWWWGGGGT",
-      "TGGGGGGGGGGGGGT",
+      "TTTTTTRRRRTTTTTT",
+      "TTTTTRHHHRTTTTTT",
+      "TTTTTRHHHRTTTTTT",
+      "TTTTTRHPHRTTTTTT",
+      "TTTTTRPPPRTTTTTT",
+      "TTTTTRPPPPPPPPPT",
+      "TTTTTRGGGGGGGGGT",
+      "TTTTTRGGGFGGGGGT",
+      "TTTTTRGGGGGGGGGT",
       "TTTTTTTTTTTTTTT"
     ]
   },
   {
-    name:"Bois de Brume",
-    encounterRate:.22,
+    name:"Prairie de Valbois",
+    encounterRate:.24,
     layout:[
       "TTTTTTTTTTTTTTT",
-      "TGGGTGGGGGTGGGGT",
-      "TGGTGGGGGGGGTGGT",
+      "TGGGGGGGGGGGGGGT",
       "TGGGGPPPPPGGGGGT",
       "TGGGGPGGGPGGGGGT",
-      "TGGGGPPPPPPGGGGT",
-      "TGGGTGGGGGGGTGGGT",
-      "TGGGGGGGGTGGGGGT",
-      "TGGGGTGGGGGGGTGT",
+      "TGGGGPPPPPGGGGGT",
+      "TGGGGGGGGGGGGGGT",
+      "TGGGGGWWWWGGGGGT",
+      "TGGGGGWWWWGGGGGT",
+      "TGGGGGGGGGGGGGGT",
       "TGGGGGGGGGGGGGGT",
       "TTTTTTTTTTTTTTT"
     ]
@@ -1464,6 +3055,9 @@ const MAPS = [
 
 function tileInfo(ch){
   if(ch==="T") return {cls:"tree",icon:"🌳",walk:false};
+  if(ch==="H") return {cls:"house",icon:"",walk:false};
+  if(ch==="R") return {cls:"roof",icon:"",walk:false};
+  if(ch==="F") return {cls:"fence",icon:"🪵",walk:false};
   if(ch==="P") return {cls:"path",icon:"",walk:true};
   if(ch==="W") return {cls:"water",icon:"",walk:false};
   return {cls:"grass",icon:"",walk:true};
@@ -1493,11 +3087,700 @@ function renderMap(){
     const x = Number(tile.dataset.x);
     const y = Number(tile.dataset.y);
     tile.classList.remove("player");
+    const ch = mapData[y][x];
+    const info = tileInfo(ch);
     if(x===playerPos.x && y===playerPos.y){
       tile.textContent = facing==="left" ? "🧑‍🦱" : facing==="right" ? "🧑‍🦰" : "🧍";
       tile.classList.add("player");
+    } else if(ch==="R"){
+      tile.textContent = "🏠";
+    } else if(ch==="H"){
+      tile.textContent = "🪟";
+    } else if(ch==="F"){
+      tile.textContent = "🪵";
     } else {
-      const info = tileInfo(mapData[y][x]);
+      tile.textContent = info.icon;
+    }
+  });
+}
+
+function isWalkable(x,y){
+  if(x<0 || y<0 || x>=MAP_W || y>=MAP_H) return false;
+  return tileInfo(mapData[y][x]).walk;
+}
+
+function movePlayer(dx,dy){
+  if(document.getElementById("exploreScreen").classList.contains("active")===false) return;
+  if(dx<0) facing="left";
+  if(dx>0) facing="right";
+  if(dy<0) facing="up";
+  if(dy>0) facing="down";
+
+  const nx = playerPos.x + dx;
+  const ny = playerPos.y + dy;
+  if(!isWalkable(nx,ny)){
+    document.getElementById("exploreLog").textContent = "Tu ne peux pas passer par là.";
+    renderMap();
+    return;
+  }
+
+  playerPos = {x:nx,y:ny};
+  steps++;
+  renderMap();
+  updateExploreUI();
+
+  const terrain = mapData[ny][nx];
+  if(terrain==="G"){
+    const messages = [
+      "Les hautes herbes bruissent autour de toi...",
+      "Tu avances dans les hautes herbes.",
+      "Quelque chose semble bouger non loin..."
+    ];
+    document.getElementById("exploreLog").textContent =
+      messages[Math.floor(Math.random()*messages.length)];
+
+    if(Math.random() < MAPS[areaIndex].encounterRate){
+      startWildEncounter();
+      return;
+    }
+  } else {
+    document.getElementById("exploreLog").textContent =
+      "Tu suis le chemin tranquillement.";
+  }
+
+  if(Math.random()<.025){
+    coins += randomInt(1,3);
+    document.getElementById("exploreLog").textContent += " Tu trouves quelques éclats au sol.";
+    updateExploreUI();
+  }
+}
+
+function startWildEncounter(){
+  const species = SPECIES[Math.floor(Math.random()*SPECIES.length)];
+  enemy = generateMonster(species);
+  battleOver = false;
+  const alive = playerTeam.findIndex(m=>m.hp>0);
+  if(alive>=0) activeIndex=alive;
+  else {
+    playerTeam.forEach(m=>m.hp=m.maxHp);
+    activeIndex=0;
+  }
+  showCombat();
+  document.getElementById("message").textContent =
+    "⚠️ Une créature sauvage surgit des hautes herbes : " + enemy.name + " !";
+  render();
+}
+
+function showExplore(logText){
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("exploreScreen").classList.add("active");
+  if(logText) document.getElementById("exploreLog").textContent = logText;
+  updateExploreUI();
+  renderMap();
+}
+
+function showCombat(){
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.add("active");
+}
+
+function updateExploreUI(){
+  document.getElementById("areaTitle").textContent = MAPS[areaIndex].name;
+  document.getElementById("steps").textContent = steps;
+  document.getElementById("coins").textContent = coins;
+  document.getElementById("exploreTeam").innerHTML = playerTeam.map((m,i)=>
+    '<div class="explore-team-row"><span>' + m.icon + ' <b>' + m.name + '</b></span><span>' +
+    m.hp + '/' + m.maxHp + ' PV' + (i===activeIndex ? ' · actif' : '') + '</span></div>'
+  ).join("");
+}
+
+function changeArea(){
+  areaIndex = (areaIndex + 1) % MAPS.length;
+  mapData = MAPS[areaIndex].layout.slice();
+  playerPos = {x:7,y:5};
+  document.getElementById("exploreLog").textContent =
+    "Tu arrives dans " + MAPS[areaIndex].name + ".";
+  buildMap();
+  updateExploreUI();
+}
+
+document.addEventListener("keydown", e=>{
+  if(!document.getElementById("exploreScreen").classList.contains("active")) return;
+  const keys = {
+    ArrowUp:[0,-1], w:[0,-1], z:[0,-1],
+    ArrowDown:[0,1], s:[0,1],
+    ArrowLeft:[-1,0], a:[-1,0], q:[-1,0],
+    ArrowRight:[1,0], d:[1,0]
+  };
+  const move = keys[e.key];
+  if(move){
+    e.preventDefault();
+    movePlayer(move[0],move[1]);
+  }
+});
+
+
+mapData = MAPS[0].layout.slice();
+buildMap();
+showStarter();
+
+</script>
+
+</body>
+</html>
+
+
+function renderStats() {
+
+  const player = playerTeam[activeIndex];
+
+  document.getElementById("stats").innerHTML = `
+
+    <div class="stat">❤️ Vitalité : ${player.vitalite}</div>
+    <div class="stat">⚔️ Force : ${player.force}</div>
+    <div class="stat">✨ Puissance : ${player.puissance}</div>
+    <div class="stat">🛡️ Résistance : ${player.resistance}</div>
+    <div class="stat">💨 Vitesse : ${player.vitesse}</div>
+
+  `;
+
+  document.getElementById("talent").textContent =
+    player.talent;
+
+}
+
+
+function useAttack(attack) {
+
+  if (battleOver) return;
+
+  const player = playerTeam[activeIndex];
+
+  if (player.hp <= 0 || enemy.hp <= 0) return;
+
+  let hit =
+    Math.random() * 100 <= attack.accuracy;
+
+  if (!hit) {
+
+    document.getElementById("message").textContent =
+      player.name + " utilise " +
+      attack.name +
+      " mais rate !";
+
+    setTimeout(enemyTurn,700);
+
+    return;
+  }
+
+
+  if (attack.category === "Statut") {
+
+    document.getElementById("message").textContent =
+      player.name + " utilise " +
+      attack.name + " !";
+
+    setTimeout(enemyTurn,700);
+
+    return;
+  }
+
+
+  let attackStat =
+    attack.category === "Physique"
+    ? player.force
+    : player.puissance;
+
+
+  let defense =
+    enemy.resistance;
+
+
+  const multiplier =
+    effectiveness(attack.type,enemy.types);
+
+
+  let damage =
+    Math.max(
+      1,
+      Math.round(
+        (attack.power * attackStat / Math.max(20,defense))
+        * 0.35
+        * multiplier
+      )
+    );
+
+
+  let critical =
+    Math.random() < 0.08;
+
+
+  if (critical) {
+    damage = Math.round(damage * 1.5);
+  }
+
+
+  enemy.hp =
+    Math.max(0,enemy.hp - damage);
+
+
+  let text =
+    player.name +
+    " utilise " +
+    attack.name +
+    " : -" +
+    damage +
+    " PV";
+
+
+  if (critical) {
+    text += " ✨ CRITIQUE !";
+  }
+
+
+  document.getElementById("message").textContent =
+    text;
+
+
+  render();
+
+
+  if (enemy.hp <= 0) {
+
+    battleOver = true;
+
+    const rewardXp = randomInt(4, 8);
+    const rewardCoins = randomInt(2, 6);
+    xp += rewardXp;
+    coins += rewardCoins;
+
+    document.getElementById("message").textContent =
+      "🏆 Victoire ! " + enemy.name + " est K.O.";
+
+    renderAttacks();
+
+    setTimeout(() => {
+      showExplore("Victoire ! +" + rewardXp + " XP et +" + rewardCoins + " éclats. Tu reprends ton exploration.");
+    }, 900);
+
+    return;
+  }
+
+
+  setTimeout(enemyTurn,700);
+
+}
+
+
+function enemyTurn() {
+
+  if (battleOver || enemy.hp <= 0) return;
+
+  const player = playerTeam[activeIndex];
+
+  const attacks = SPECIES
+    .find(s => s.name === enemy.name)
+    .attacks;
+
+  const raw =
+    attacks[Math.floor(Math.random() * attacks.length)];
+
+
+  const attack = {
+    name:raw[0],
+    type:raw[1],
+    category:raw[2],
+    power:raw[3],
+    accuracy:raw[4]
+  };
+
+
+  if (Math.random() * 100 > attack.accuracy) {
+
+    document.getElementById("message").textContent =
+      enemy.name +
+      " utilise " +
+      attack.name +
+      " mais rate !";
+
+    return;
+  }
+
+
+  if (attack.category === "Statut") {
+
+    document.getElementById("message").textContent =
+      enemy.name +
+      " utilise " +
+      attack.name +
+      " !";
+
+    return;
+  }
+
+
+  const attackStat =
+    attack.category === "Physique"
+    ? enemy.force
+    : enemy.puissance;
+
+
+  const multiplier =
+    effectiveness(attack.type,player.types);
+
+
+  let damage =
+    Math.max(
+      1,
+      Math.round(
+        (attack.power * attackStat /
+        Math.max(20,player.resistance))
+        * 0.35
+        * multiplier
+      )
+    );
+
+
+  player.hp =
+    Math.max(0,player.hp - damage);
+
+
+  document.getElementById("message").textContent =
+    enemy.name +
+    " utilise " +
+    attack.name +
+    " : -" +
+    damage +
+    " PV";
+
+
+  render();
+
+
+  if (player.hp <= 0) {
+
+    const alive =
+      playerTeam.some(m => m.hp > 0);
+
+    if (alive) {
+
+      document.getElementById("message").textContent =
+        player.name +
+        " est K.O. ! Choisis un autre monstre.";
+
+    } else {
+
+      battleOver = true;
+
+      document.getElementById("message").textContent =
+        "💀 Toute ton équipe est K.O.";
+
+    }
+
+  }
+
+}
+
+
+function switchMonster(index) {
+
+  if (battleOver) return;
+
+  if (index === activeIndex) return;
+
+  if (playerTeam[index].hp <= 0) return;
+
+  activeIndex = index;
+
+  document.getElementById("message").textContent =
+    "Tu envoies " +
+    playerTeam[index].name +
+    " !";
+
+  render();
+
+}
+
+
+function showExplore(logText) {
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("exploreScreen").classList.add("active");
+  document.getElementById("exploreLog").textContent = logText;
+  updateExploreUI();
+}
+
+function showCombat() {
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.add("active");
+}
+
+function updateExploreUI() {
+  const area = AREAS[areaIndex];
+  document.getElementById("areaTitle").textContent = area.name;
+  document.getElementById("areaDesc").textContent = area.desc;
+  document.getElementById("steps").textContent = steps;
+  document.getElementById("xp").textContent = xp;
+  document.getElementById("coins").textContent = coins;
+
+  const box = document.getElementById("exploreTeam");
+  box.innerHTML = playerTeam.map((m,i) =>
+    '<div style="padding:7px 0;border-bottom:1px solid #3a3a3a;font-size:13px;">' +
+    m.icon + ' <b>' + m.name + '</b> — ' + m.hp + '/' + m.maxHp + ' PV' +
+    (i === activeIndex ? ' · actif' : '') +
+    '</div>'
+  ).join("");
+}
+
+function exploreStep() {
+  steps++;
+  const roll = Math.random();
+
+  if (roll < 0.32) {
+    const species = SPECIES[Math.floor(Math.random() * SPECIES.length)];
+    enemy = generateMonster(species);
+    battleOver = false;
+    activeIndex = playerTeam.findIndex(m => m.hp > 0);
+    if (activeIndex < 0) {
+      playerTeam.forEach(m => m.hp = m.maxHp);
+      activeIndex = 0;
+    }
+    showCombat();
+    document.getElementById("message").textContent =
+      "⚠️ Une créature sauvage apparaît : " + enemy.name + " !";
+    render();
+    return;
+  }
+
+  if (roll < 0.52) {
+    const found = randomInt(1, 3);
+    coins += found;
+    updateExploreUI();
+    document.getElementById("exploreLog").textContent =
+      "Tu trouves " + found + " éclat" + (found > 1 ? "s" : "") + " abandonné" + (found > 1 ? "s" : "") + " sur le chemin.";
+    return;
+  }
+
+  if (roll < 0.62) {
+    const heal = randomInt(8, 18);
+    playerTeam.forEach(m => m.hp = Math.min(m.maxHp, m.hp + heal));
+    updateExploreUI();
+    document.getElementById("exploreLog").textContent =
+      "🌿 Une source claire te permet de récupérer " + heal + " PV à chaque membre de l'équipe.";
+    return;
+  }
+
+  updateExploreUI();
+  const messages = [
+    "Tu avances prudemment. Le vent fait bouger les hautes herbes.",
+    "Tu aperçois des traces inconnues, mais la créature a déjà disparu.",
+    "Rien à signaler... pour l'instant.",
+    "Tu découvres un passage qui pourrait mener plus loin dans la zone."
+  ];
+  document.getElementById("exploreLog").textContent = messages[Math.floor(Math.random() * messages.length)];
+}
+
+function changeArea() {
+  areaIndex = (areaIndex + 1) % AREAS.length;
+  document.getElementById("exploreLog").textContent =
+    "Tu changes de zone et arrives dans " + AREAS[areaIndex].name + ".";
+  updateExploreUI();
+}
+
+function fleeBattle() {
+  if (battleOver) return;
+  showExplore("🏃 Tu prends la fuite. La créature sauvage disparaît dans les environs.");
+}
+
+function newBattle() {
+
+  battleOver = false;
+
+  activeIndex = 0;
+
+  playerTeam = [];
+
+  while (playerTeam.length < 3) {
+
+    const species =
+      SPECIES[
+        Math.floor(Math.random() * SPECIES.length)
+      ];
+
+    playerTeam.push(generateMonster(species));
+
+  }
+
+
+  const enemySpecies =
+    SPECIES[
+      Math.floor(Math.random() * SPECIES.length)
+    ];
+
+
+  enemy =
+    generateMonster(enemySpecies);
+
+
+  document.getElementById("message").textContent =
+    "À toi de jouer.";
+
+
+  render();
+
+}
+
+
+
+// =========================
+// DÉPART + CAPTURE
+// =========================
+const STARTERS = ["Salamèche","Néréide","Mousselet"];
+
+function renderStarters(){
+  const box = document.getElementById("starterList");
+  box.innerHTML = STARTERS.map(name=>{
+    const s = SPECIES.find(x=>x.name===name);
+    const avg = Math.round((s.stats.vitalite[1]+s.stats.force[1]+s.stats.puissance[1]+s.stats.resistance[1]+s.stats.vitesse[1])/5);
+    return '<button class="starter-choice" type="button" onclick="chooseStarter(\''+name+'\')">' +
+      '<div class="starter-art">'+s.icon+'</div>' +
+      '<div><div class="starter-name">'+s.name+'</div><div class="starter-type">'+s.types.join(" / ")+'</div>' +
+      '<div class="starter-stats">Potentiel moyen : '+avg+' · Talent : '+s.talent+'</div></div><div class="starter-arrow">▶</div></button>';
+  }).join("");
+}
+
+function showStarter(){
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("starterScreen").classList.add("active");
+  renderStarters();
+}
+
+function chooseStarter(name){
+  const species = SPECIES.find(s=>s.name===name);
+  playerTeam = [generateMonster(species)];
+  activeIndex = 0;
+  battleOver = false;
+  playerTeam[0].hp = playerTeam[0].maxHp;
+  playerPos = {x:7,y:6};
+  mapData = MAPS[0].layout.slice();
+  document.getElementById("starterScreen").classList.remove("active");
+  showExplore("Tu sors de ta maison avec "+name+". La prairie juste au sud est couverte de hautes herbes.");
+  buildMap();
+}
+
+function attemptCapture(){
+  if(battleOver || !enemy || enemy.hp<=0) return;
+  if(playerTeam.length>=3){
+    document.getElementById("message").textContent = "Ton équipe est déjà complète (3 créatures).";
+    return;
+  }
+  const chance = Math.min(.78, .22 + (1 - enemy.hp/enemy.maxHp)*.55);
+  if(Math.random() < chance){
+    const caught = enemy;
+    caught.hp = caught.maxHp;
+    playerTeam.push(caught);
+    battleOver = true;
+    document.getElementById("message").textContent = "✨ Capturé ! "+caught.name+" rejoint ton équipe.";
+    render();
+    setTimeout(()=>showExplore("Tu as capturé "+caught.name+" ! Ton équipe compte maintenant "+playerTeam.length+" créature(s)."),900);
+  } else {
+    document.getElementById("message").textContent = "La créature se débat et s'échappe de la capsule !";
+    setTimeout(enemyTurn,650);
+  }
+}
+
+/* =========================
+   EXPLORATION LIBRE RÉTRO
+   ========================= */
+const MAP_W = 15;
+const MAP_H = 11;
+let mapData = [];
+let playerPos = {x:7,y:5};
+let facing = "down";
+
+const MAPS = [
+  {
+    name:"Valbois — Route 1",
+    encounterRate:.18,
+    layout:[
+      "TTTTTTTTTTTTTTT",
+      "TTTTTTRRRRTTTTTT",
+      "TTTTTRHHHRTTTTTT",
+      "TTTTTRHHHRTTTTTT",
+      "TTTTTRHPHRTTTTTT",
+      "TTTTTRPPPRTTTTTT",
+      "TTTTTRPPPPPPPPPT",
+      "TTTTTRGGGGGGGGGT",
+      "TTTTTRGGGFGGGGGT",
+      "TTTTTRGGGGGGGGGT",
+      "TTTTTTTTTTTTTTT"
+    ]
+  },
+  {
+    name:"Prairie de Valbois",
+    encounterRate:.24,
+    layout:[
+      "TTTTTTTTTTTTTTT",
+      "TGGGGGGGGGGGGGGT",
+      "TGGGGPPPPPGGGGGT",
+      "TGGGGPGGGPGGGGGT",
+      "TGGGGPPPPPGGGGGT",
+      "TGGGGGGGGGGGGGGT",
+      "TGGGGGWWWWGGGGGT",
+      "TGGGGGWWWWGGGGGT",
+      "TGGGGGGGGGGGGGGT",
+      "TGGGGGGGGGGGGGGT",
+      "TTTTTTTTTTTTTTT"
+    ]
+  }
+];
+
+function tileInfo(ch){
+  if(ch==="T") return {cls:"tree",icon:"🌳",walk:false};
+  if(ch==="H") return {cls:"house",icon:"",walk:false};
+  if(ch==="R") return {cls:"roof",icon:"",walk:false};
+  if(ch==="F") return {cls:"fence",icon:"🪵",walk:false};
+  if(ch==="P") return {cls:"path",icon:"",walk:true};
+  if(ch==="W") return {cls:"water",icon:"",walk:false};
+  return {cls:"grass",icon:"",walk:true};
+}
+
+function buildMap(){
+  const map = document.getElementById("map");
+  map.innerHTML = "";
+  const data = mapData;
+  for(let y=0;y<MAP_H;y++){
+    for(let x=0;x<MAP_W;x++){
+      const ch = data[y][x];
+      const info = tileInfo(ch);
+      const tile = document.createElement("div");
+      tile.className = "tile " + info.cls;
+      tile.dataset.x = x;
+      tile.dataset.y = y;
+      if(info.icon) tile.textContent = info.icon;
+      map.appendChild(tile);
+    }
+  }
+  renderMap();
+}
+
+function renderMap(){
+  document.querySelectorAll("#map .tile").forEach(tile=>{
+    const x = Number(tile.dataset.x);
+    const y = Number(tile.dataset.y);
+    tile.classList.remove("player");
+    const ch = mapData[y][x];
+    const info = tileInfo(ch);
+    if(x===playerPos.x && y===playerPos.y){
+      tile.textContent = facing==="left" ? "🧑‍🦱" : facing==="right" ? "🧑‍🦰" : "🧍";
+      tile.classList.add("player");
+    } else if(ch==="R"){
+      tile.textContent = "🏠";
+    } else if(ch==="H"){
+      tile.textContent = "🪟";
+    } else if(ch==="F"){
+      tile.textContent = "🪵";
+    } else {
       tile.textContent = info.icon;
     }
   });
