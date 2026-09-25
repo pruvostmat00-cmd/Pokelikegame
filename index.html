@@ -1,592 +1,61 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Pokelikegame — Prototype</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Pokelikegame</title>
 <style>
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  background: #151515;
-  color: #fff;
-  font-family: Arial, sans-serif;
-}
-
-#game {
-  width: 100%;
-  max-width: 480px;
-  min-height: 100vh;
-  margin: auto;
-  padding: 12px;
-  background: #202020;
-}
-
-.screen { display:none; }
-.screen.active { display:block; }
-
-.explore-card {
-  background:#292929;
-  border-radius:18px;
-  padding:16px;
-  margin-bottom:10px;
-}
-
-.area-title { font-size:22px; font-weight:bold; margin-bottom:6px; }
-.area-desc { font-size:13px; opacity:.8; line-height:1.4; }
-
-.explore-button {
-  width:100%;
-  border:0;
-  border-radius:13px;
-  padding:15px;
-  margin-top:9px;
-  background:#3a3a3a;
-  color:white;
-  font-weight:bold;
-  font-size:15px;
-}
-.explore-button:active { transform:scale(.98); }
-.explore-button.primary { background:#596b3d; }
-
-.resources {
-  display:flex;
-  gap:6px;
-  margin:10px 0;
-}
-.resource {
-  flex:1;
-  background:#333;
-  border-radius:10px;
-  padding:8px 4px;
-  text-align:center;
-  font-size:12px;
-}
-
-.log {
-  background:#1c1c1c;
-  border-radius:12px;
-  padding:10px;
-  min-height:64px;
-  font-size:13px;
-  line-height:1.4;
-}
-
-h1 {
-  text-align: center;
-  font-size: 22px;
-  margin: 5px 0 12px;
-}
-
-.arena {
-  background: #292929;
-  border-radius: 18px;
-  padding: 12px;
-  margin-bottom: 10px;
-}
-
-.monster-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.monster-icon {
-  font-size: 58px;
-  width: 70px;
-  text-align: center;
-}
-
-.monster-info {
-  flex: 1;
-}
-
-.monster-name {
-  font-size: 19px;
-  font-weight: bold;
-}
-
-.types {
-  font-size: 13px;
-  opacity: .8;
-  margin: 3px 0 7px;
-}
-
-.hp-bg {
-  width: 100%;
-  height: 14px;
-  background: #555;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.hp {
-  height: 100%;
-  width: 100%;
-  background: #49c95b;
-  transition: width .3s;
-}
-
-.hp-text {
-  font-size: 12px;
-  margin-top: 3px;
-}
-
-.status {
-  text-align: center;
-  min-height: 42px;
-  padding: 8px;
-  font-size: 15px;
-}
-
-.attacks {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
-
-.attack {
-  border: 0;
-  border-radius: 12px;
-  padding: 10px;
-  background: #383838;
-  color: white;
-  text-align: left;
-  min-height: 70px;
-  font-size: 14px;
-}
-
-.attack:active {
-  transform: scale(.97);
-}
-
-.attack-name {
-  font-weight: bold;
-  font-size: 15px;
-}
-
-.attack-info {
-  margin-top: 5px;
-  font-size: 11px;
-  opacity: .8;
-}
-
-.attack:disabled {
-  opacity: .35;
-}
-
-.team {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-.team button {
-  flex: 1;
-  padding: 8px 4px;
-  border: 0;
-  border-radius: 10px;
-  background: #333;
-  color: white;
-  font-size: 12px;
-}
-
-.team button.active {
-  outline: 2px solid white;
-}
-
-.team button:disabled {
-  opacity: .3;
-}
-
-.panel {
-  background: #292929;
-  border-radius: 15px;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-.panel-title {
-  font-weight: bold;
-  margin-bottom: 7px;
-}
-
-.stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  font-size: 12px;
-}
-
-.stat {
-  background: #333;
-  padding: 5px;
-  border-radius: 6px;
-}
-
-.reset {
-  width: 100%;
-  border: 0;
-  border-radius: 10px;
-  padding: 12px;
-  margin-top: 10px;
-  background: #555;
-  color: white;
-  font-weight: bold;
-}
-
-/* --- Direction artistique : RPG 16-bit original --- */
-html,body{
-  margin:0;
-  min-height:100%;
-  background:#102319;
-}
-body{
-  color:#172019;
-  font-family:"Trebuchet MS",Arial,sans-serif;
-  image-rendering:auto;
-}
-#game{
-  width:min(100%,520px);
-  min-height:100vh;
-  margin:0 auto;
-  padding:0 0 18px;
-  background:#d9c48e;
-  overflow:hidden;
-  box-shadow:0 0 30px rgba(0,0,0,.35);
-}
-#game>h1{
-  margin:0;
-  padding:11px 14px 9px;
-  color:#fff4c8;
-  background:linear-gradient(#3b6b43,#274c31);
-  border-bottom:4px solid #1d3825;
-  font-size:18px;
-  letter-spacing:.5px;
-  text-shadow:2px 2px 0 #18301f;
-}
-.screen{display:none!important}
-.screen.active{display:block!important}
-
-/* écran de départ */
-#starterScreen{padding:14px 12px 22px}
-.starter-intro{
-  position:relative;
-  overflow:hidden;
-  padding:18px 15px 16px;
-  border:3px solid #624a2e;
-  border-radius:8px;
-  background:linear-gradient(#f9edbd,#e4ca88);
-  box-shadow:0 4px 0 #8b6b42, inset 0 0 0 2px rgba(255,255,255,.35);
-}
-.starter-intro:after{
-  content:"";
-  position:absolute;inset:auto -20px -26px;height:70px;
-  background:repeating-linear-gradient(165deg,transparent 0 8px,#789b50 8px 10px);
-  opacity:.45;
-}
-.starter-intro>div{position:relative;z-index:1}
-.starter-intro h2{margin:4px 0 7px;font-size:24px}
-.starter-intro p{margin:0;font-size:13px;line-height:1.45}
-.starter-list{display:grid;gap:10px;margin-top:14px}
-.starter-choice{
-  position:relative;
-  display:grid;
-  grid-template-columns:76px 1fr 22px;
-  align-items:center;
-  gap:9px;
-  width:100%;
-  min-height:82px;
-  padding:9px;
-  border:3px solid #5d4429;
-  border-radius:8px;
-  background:linear-gradient(#fff0bc,#ead39a);
-  color:#20251b;
-  text-align:left;
-  box-shadow:0 3px 0 #80603a;
-  touch-action:manipulation;
-}
-.starter-choice:active{transform:translateY(2px);box-shadow:0 1px 0 #80603a}
-.starter-art{
-  height:62px;display:flex;align-items:center;justify-content:center;
-  font-size:45px;filter:drop-shadow(0 3px 0 rgba(55,45,25,.25));
-}
-.starter-name{font-size:17px;font-weight:bold}
-.starter-type{font-size:12px;margin-top:3px;opacity:.75}
-.starter-stats{font-size:10px;margin-top:5px;opacity:.72}
-.starter-arrow{font-size:18px}
-
-/* monde */
-#exploreScreen{padding:0 9px 18px}
-#exploreScreen h1{display:none}
-.map-wrap{
-  margin-top:10px;
-  padding:5px;
-  border:5px solid #493725;
-  border-radius:7px;
-  background:#243c27;
-  box-shadow:0 5px 0 #17251a, inset 0 0 0 2px #718052;
-}
-#map.map{
-  display:block;
-  width:100%;
-  height:auto;
-  aspect-ratio:15/11;
-  border:0;
-  border-radius:2px;
-  background:#78aa4d;
-  image-rendering:pixelated;
-  image-rendering:crisp-edges;
-}
-.map-hud{
-  display:flex;gap:5px;margin:8px 1px 0;
-}
-.map-hud span{
-  flex:1;padding:7px 5px;text-align:center;
-  border:2px solid #344a32;border-radius:6px;
-  background:#40583a;color:#fff1bd;font-size:11px;
-  box-shadow:0 2px 0 #263526;
-}
-.map-log{
-  min-height:37px;margin-top:7px;padding:8px 9px;
-  border:2px solid #6a5735;border-radius:6px;
-  background:#f0dfaa;color:#2b2b1d;
-  font-size:12px;line-height:1.35;
-  box-shadow:0 2px 0 #a58b5b;
-}
-.dpad{
-  width:156px;margin:9px auto 0;
-  display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px;
-}
-.dpad button{
-  border:3px solid #263226;background:#4b6046;color:#fff5c8;
-  font-size:20px;font-weight:bold;touch-action:manipulation;
-  box-shadow:0 3px 0 #253225;
-}
-.dpad button:active{transform:translateY(2px);box-shadow:0 1px 0 #253225}
-.dpad .up{grid-column:2;grid-row:1;border-radius:7px 7px 2px 2px}
-.dpad .left{grid-column:1;grid-row:2;border-radius:7px 2px 2px 7px}
-.dpad .down{grid-column:2;grid-row:2;border-radius:2px 2px 7px 7px}
-.dpad .right{grid-column:3;grid-row:2;border-radius:2px 7px 7px 2px}
-.explore-team{
-  margin-top:9px;padding:9px;
-  border:2px solid #695535;border-radius:7px;
-  background:#f1e2ae;box-shadow:0 2px 0 #a58b5b;
-}
-.explore-team .panel-title{margin-bottom:5px}
-.explore-team-row{
-  display:flex;justify-content:space-between;gap:8px;
-  padding:6px 0;border-bottom:1px solid #c9b67f;font-size:12px;
-}
-.explore-team-row:last-child{border-bottom:0}
-.capture-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
-.capture-button{
-  border:3px solid #5b4028;border-radius:7px;padding:11px 8px;
-  background:#f0dfaa;color:#201f17;font-weight:bold;
-}
-
-/* combat : même direction artistique */
-#combatScreen{padding:0 12px 18px}
-.arena,.panel{
-  background:#f1e2ae;border:2px solid #6a5435;border-radius:8px;
-  box-shadow:0 3px 0 #a58b5b;color:#20251b;
-}
-.arena{padding:10px;margin-bottom:9px}
-.panel{padding:9px;margin-top:9px}
-.monster-icon{font-size:54px}
-.hp-bg{height:12px;background:#b8a57a;border:2px solid #705c3a;border-radius:3px}
-.hp{background:#5b9b4b}
-.attack{
-  border:2px solid #665034;border-radius:6px;background:#e3cf96;color:#20251b;
-  box-shadow:0 2px 0 #9d8152;
-}
-.attack:active{transform:translateY(2px);box-shadow:none}
-.team button,.reset{
-  border:2px solid #665034;border-radius:6px;background:#e3cf96;color:#20251b;
-}
-.status{color:#20251b}
-
-/* COMMERCIAL VISUAL PASS */
-body{background:radial-gradient(circle at 50% 0%,#315d48 0,#183526 42%,#0d1d16 100%);font-family:"Trebuchet MS",system-ui,sans-serif}
-#game{max-width:540px;background:linear-gradient(180deg,#fff9df 0,#f0dfad 100%);box-shadow:0 0 0 1px rgba(255,255,255,.15),0 24px 70px rgba(0,0,0,.45)}
-#game>h1{height:52px;display:flex;align-items:center;justify-content:center;margin:0;background:linear-gradient(180deg,#4d9565 0,#286044 58%,#1d4a35 100%);border-bottom:3px solid #143625;font-size:17px;letter-spacing:1.5px;text-transform:uppercase}
-#starterScreen{min-height:calc(100vh - 52px);padding:0 12px 24px;background:radial-gradient(circle at 50% 9%,rgba(255,255,255,.7),transparent 30%),linear-gradient(#f9edc6,#e5ca8b)}
-.starter-intro{border:0;border-radius:0 0 18px 18px;padding:0 0 16px;background:none;box-shadow:none;overflow:visible}
-.starter-intro:after{display:none}
-.starter-hero{position:relative;height:205px;margin:0 -12px 16px;overflow:hidden;border-bottom:4px solid #7c6338;background:linear-gradient(180deg,#89c7df 0%,#b8e1dd 45%,#e6d08e 46%,#b0c778 47%,#6e9b4d 100%)}
-.starter-hero:before{content:"";position:absolute;left:-8%;right:-8%;bottom:48px;height:92px;background:radial-gradient(ellipse at 15% 100%,#4f7942 0 34%,transparent 35%),radial-gradient(ellipse at 43% 100%,#638e49 0 38%,transparent 39%),radial-gradient(ellipse at 78% 100%,#4b743d 0 35%,transparent 36%)}
-.starter-hero:after{content:"";position:absolute;width:128px;height:80px;left:50%;bottom:37px;transform:translateX(-50%);background:linear-gradient(145deg,transparent 0 18%,#8d4b39 19% 55%,transparent 56%),linear-gradient(90deg,#e7c98b 0 100%);clip-path:polygon(50% 0,100% 38%,92% 100%,8% 100%,0 38%);filter:drop-shadow(0 5px 0 rgba(36,52,29,.28))}
-.hero-sun{position:absolute;width:42px;height:42px;right:35px;top:28px;border-radius:50%;background:#ffe3a0;box-shadow:0 0 28px rgba(255,236,157,.75)}
-.hero-title{position:absolute;z-index:3;left:16px;bottom:14px;color:#fff8d7;font-size:30px;font-weight:900;text-shadow:0 3px 0 #29452e,0 6px 12px rgba(0,0,0,.35)}
-.hero-sub{position:absolute;z-index:3;left:18px;bottom:2px;color:#f5edca;font-size:11px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase}
-.starter-copy{text-align:center;padding:0 12px 4px}
-.starter-copy h2{margin:0 0 5px;color:#263d2a;font-size:22px}
-.starter-copy p{margin:0 auto;max-width:410px;color:#5b593e;font-size:13px;line-height:1.45}
-.starter-kicker{display:inline-block;margin-bottom:7px;padding:4px 9px;border-radius:999px;background:#d8bd72;color:#584523;font-size:9px;font-weight:900;letter-spacing:1.3px;text-transform:uppercase}
-.starter-list{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
-.starter-choice{display:block;min-height:178px;padding:8px;border:2px solid #6b522e;border-radius:13px;background:linear-gradient(180deg,#fff7d8,#ead29a);color:#16231b;text-align:center;box-shadow:0 4px 0 #987348,0 9px 18px rgba(79,57,26,.16);transition:transform .12s,box-shadow .12s}
-.starter-choice:hover{transform:translateY(-2px)}
-.starter-choice:active{transform:translateY(3px);box-shadow:0 1px 0 #987348}
-.starter-art{height:86px;margin:-2px -2px 6px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:56px;background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.85),transparent 38%),linear-gradient(145deg,#cce6ba,#8fba79);border:1px solid rgba(66,91,49,.2)}
-.starter-choice:nth-child(2) .starter-art{background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.9),transparent 38%),linear-gradient(145deg,#b9e0e5,#70aeba)}
-.starter-choice:nth-child(3) .starter-art{background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.9),transparent 38%),linear-gradient(145deg,#d8e7ad,#83aa64)}
-.starter-name{font-size:14px;font-weight:900}
-.starter-type{display:inline-block;margin-top:4px;padding:3px 7px;border-radius:999px;background:#385f43;color:#f7edc8;font-size:9px;font-weight:bold}
-.starter-stats{margin-top:7px;font-size:9px;line-height:1.25;color:#756746}
-.starter-arrow{display:none}
-.starter-footer{margin-top:13px;text-align:center;color:#746748;font-size:10px}
-.map-wrap{margin-top:10px;padding:6px;border:4px solid #273f2c;border-radius:13px;background:#172c20;box-shadow:0 7px 0 #102018,0 12px 20px rgba(25,38,24,.18),inset 0 0 0 2px #77905d}
-#map.map{border-radius:7px}
-.map-hud span{background:linear-gradient(#416c48,#2c5037);border:2px solid #203d2a;box-shadow:0 2px 0 #162b1d}
-.map-log{background:linear-gradient(#fff5d1,#ead7a2);border:2px solid #725c36}
-.dpad button{background:linear-gradient(#5b7658,#3e5941);border-color:#263d2b}
-.explore-team{background:linear-gradient(#fff5d1,#ead7a2)}
-#combatScreen{background:linear-gradient(#e8d6a4,#d8bd7b);min-height:calc(100vh - 52px);padding-top:10px}
-.arena{border:2px solid #624c30;box-shadow:0 4px 0 #a08350,0 10px 20px rgba(74,54,27,.1);background:linear-gradient(135deg,#fff5d3,#ead29a)}
-.attack{background:linear-gradient(#fff1c2,#e1c98c);border-color:#705633}
-.capture-button{background:linear-gradient(#fff4cc,#e3ca8e)}
-@media(max-width:390px){.starter-choice{min-height:165px}.starter-art{height:76px;font-size:48px}.starter-name{font-size:12px}.starter-stats{font-size:8px}}
-
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#151b17}
+body{font-family:monospace;color:#172018;image-rendering:pixelated}
+#game{width:min(100%,520px);min-height:100vh;margin:auto;background:#d8c58c}
+#game>h1{margin:0;height:34px;background:#273d2c;color:#f5e7af;display:flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:2px;border-bottom:3px solid #142319}
+.screen{display:none}.screen.active{display:block!important}
+#exploreScreen{padding:7px}
+.world-topbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 4px;font-size:11px;color:#34422c}
+.map-wrap{position:relative;border:5px solid #25251e;background:#111711;padding:2px;box-shadow:0 4px 0 #0a0d0a}
+#map{display:block;width:100%;height:auto;aspect-ratio:15/11;image-rendering:pixelated;touch-action:none}
+.map-hint{position:absolute;left:13px;right:13px;bottom:10px;padding:5px 7px;background:rgba(248,231,176,.94);border:2px solid #5d4b2d;font-size:9px;text-align:center;box-shadow:2px 2px 0 #352c1d}
+.map-log{margin-top:6px;min-height:39px;padding:7px 8px;background:#f3e2ad;border:2px solid #6b5632;box-shadow:0 3px 0 #9a8050;font-size:10px;line-height:1.35}
+.dpad{width:132px;margin:8px auto 5px;display:grid;grid-template-columns:44px 44px 44px;grid-template-rows:38px 38px}
+.dpad button{border:2px solid #263326;background:#3d573e;color:#f4e5ac;font-size:16px;font-weight:bold}.dpad .up{grid-column:2}.dpad .left{grid-column:1;grid-row:2}.dpad .down{grid-column:2;grid-row:2}.dpad .right{grid-column:3;grid-row:2}
+.explore-team{padding:6px;background:#ead7a0;border:2px solid #705936;font-size:10px}
+.explore-team-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #c5ae76}.explore-team-row:last-child{border:0}
+#combatScreen{padding:7px;background:#d8c58c;min-height:calc(100vh - 34px)}
+#combatScreen h1{font-size:15px;text-align:center;margin:3px 0 7px}
+.arena,.panel{background:#f0dfaa;border:2px solid #6b5632;box-shadow:0 3px 0 #9a8050;padding:8px;margin-bottom:7px}
+.monster-row{display:flex;gap:8px;align-items:center}.monster-icon{width:54px;font-size:38px;text-align:center}.monster-info{flex:1}.monster-name{font-weight:bold;font-size:14px}.types{font-size:9px;margin:2px 0 5px}
+.hp-bg{height:10px;background:#a99569;border:2px solid #6a5635}.hp{height:100%;background:#4e8e4b}.hp-text{font-size:9px;margin-top:2px}
+.status{text-align:center;min-height:35px;padding:5px;font-size:11px}
+.attacks{display:grid;grid-template-columns:1fr 1fr;gap:5px}.attack{min-height:57px;padding:6px;background:#e5ce94;border:2px solid #725a35;color:#182018;font-family:monospace}.attack-name{font-weight:bold;font-size:11px}.attack-info{font-size:8px;margin-top:3px}
+.team{display:flex;gap:4px}.team button,.capture-button,.reset{border:2px solid #725a35;background:#e5ce94;color:#182018;padding:7px;font-family:monospace;font-weight:bold}.team button{flex:1;font-size:9px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:3px;font-size:9px}.stat{background:#dfca91;padding:4px}
+.capture-panel{display:grid;grid-template-columns:1fr 1fr;gap:5px}.reset{width:100%;margin-top:6px}
 </style>
-<style>
-body{background:#14271d!important;font-family:system-ui,sans-serif!important}
-#game{max-width:540px!important;background:#ead79e!important;box-shadow:0 20px 70px #07110b!important}
-#game>h1{height:44px!important;padding:7px 14px!important;background:linear-gradient(#477f55,#285239)!important;font-size:16px!important;letter-spacing:2px!important}
-.world-topbar{display:flex;justify-content:space-between;padding:9px 3px 5px;color:#30442b}
-.map-wrap{position:relative!important;margin:0!important;padding:5px!important;border:5px solid #392d24!important;border-radius:8px!important;background:#17251c!important;box-shadow:0 5px 0 #0e1711,0 12px 25px rgba(0,0,0,.2)!important}
-#map.map{width:100%!important;aspect-ratio:15/11!important}
-.map-hint{position:absolute;left:13px;right:13px;bottom:13px;padding:7px;border:2px solid #61492c;border-radius:5px;background:rgba(255,242,194,.92);color:#3b3523;font-size:10px;font-weight:700;text-align:center}
-.map-log{margin:8px 2px!important;background:#fff0c3!important;border:2px solid #725c38!important;border-radius:5px!important;color:#3b3726!important}
-</style></head>
-
+</head>
 <body>
-
 <div id="game">
-
-<h1>🐾 Pokelikegame</h1>
+<h1>POKELIKEGAME · VALBOIS</h1>
 
 <div id="exploreScreen" class="screen active">
-  <div class="world-topbar"><b id="areaTitle">Maison de Valbois</b><span>✦ <b id="coins">0</b></span></div>
-  <div class="map-wrap"><canvas class="map" id="map" width="480" height="352"></canvas><div id="mapHint" class="map-hint">Approche-toi de la table et choisis ton compagnon.</div></div>
-  <div class="map-log" id="exploreLog">Une douce lumière entre par la fenêtre. Trois compagnons attendent sur la table.</div>
-  <div class="dpad" aria-label="Contrôles"><button class="up" type="button" onclick="movePlayer(0,-1)">▲</button><button class="left" type="button" onclick="movePlayer(-1,0)">◀</button><button class="down" type="button" onclick="movePlayer(0,1)">▼</button><button class="right" type="button" onclick="movePlayer(1,0)">▶</button></div>
-  <div class="explore-team"><div class="panel-title">Équipe</div><div id="exploreTeam"></div></div>
+  <div class="world-topbar"><b id="areaTitle">Maison du professeur</b><span>✦ <b id="coins">0</b></span></div>
+  <div class="map-wrap"><canvas id="map" width="480" height="352"></canvas><div id="mapHint" class="map-hint">Approche-toi de la table.</div></div>
+  <div id="exploreLog" class="map-log">Trois jeunes créatures t'attendent. Le choix qui commence ton aventure est devant toi.</div>
+  <div class="dpad"><button class="up" onclick="movePlayer(0,-1)">▲</button><button class="left" onclick="movePlayer(-1,0)">◀</button><button class="down" onclick="movePlayer(0,1)">▼</button><button class="right" onclick="movePlayer(1,0)">▶</button></div>
+  <div class="explore-team"><b>ÉQUIPE</b><div id="exploreTeam"></div></div>
 </div>
-
-
 
 <div id="combatScreen" class="screen">
-
-<h1>⚔️ Combat</h1>
-
-<div class="arena">
-
-  <div class="monster-row">
-
-    <div class="monster-icon" id="enemyIcon">💧</div>
-
-    <div class="monster-info">
-
-      <div class="monster-name" id="enemyName">Néréide</div>
-
-      <div class="types" id="enemyTypes">Eau</div>
-
-      <div class="hp-bg">
-        <div class="hp" id="enemyHpBar"></div>
-      </div>
-
-      <div class="hp-text">
-        PV : <span id="enemyHpText">100</span> / <span id="enemyMaxHp">100</span>
-      </div>
-
-    </div>
-
-  </div>
-
+<h1>COMBAT</h1>
+<div class="arena"><div class="monster-row"><div class="monster-icon" id="enemyIcon">💧</div><div class="monster-info"><div class="monster-name" id="enemyName"></div><div class="types" id="enemyTypes"></div><div class="hp-bg"><div class="hp" id="enemyHpBar"></div></div><div class="hp-text">PV <span id="enemyHpText"></span>/<span id="enemyMaxHp"></span></div></div></div></div>
+<div class="status" id="message"></div>
+<div class="arena"><div class="monster-row"><div class="monster-icon" id="playerIcon">🔥</div><div class="monster-info"><div class="monster-name" id="playerName"></div><div class="types" id="playerTypes"></div><div class="hp-bg"><div class="hp" id="playerHpBar"></div></div><div class="hp-text">PV <span id="playerHpText"></span>/<span id="playerMaxHp"></span></div></div></div></div>
+<div class="panel"><b>ÉQUIPE</b><div class="team" id="teamButtons"></div></div>
+<div class="panel"><b>ATTAQUES</b><div class="attacks" id="attacks"></div></div>
+<div class="capture-panel"><button class="capture-button" onclick="attemptCapture()">CAPTURER</button><button class="capture-button" onclick="fleeBattle()">FUIR</button></div>
+<div class="panel"><b>STATISTIQUES</b><div class="stats" id="stats"></div><div style="font-size:9px;margin-top:5px">Talent : <b id="talent">—</b></div></div>
+<button class="reset" onclick="newBattle()">NOUVEAU COMBAT</button>
 </div>
-
-
-<div class="status" id="message">
-  À toi de jouer.
-</div>
-
-
-<div class="arena">
-
-  <div class="monster-row">
-
-    <div class="monster-icon" id="playerIcon">🔥</div>
-
-    <div class="monster-info">
-
-      <div class="monster-name" id="playerName">Salamèche</div>
-
-      <div class="types" id="playerTypes">Feu</div>
-
-      <div class="hp-bg">
-        <div class="hp" id="playerHpBar"></div>
-      </div>
-
-      <div class="hp-text">
-        PV : <span id="playerHpText">100</span> / <span id="playerMaxHp">100</span>
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-
-<div class="panel">
-
-  <div class="panel-title">Ton équipe</div>
-
-  <div class="team" id="teamButtons"></div>
-
-</div>
-
-
-<div class="panel">
-
-  <div class="panel-title">Attaques</div>
-
-  <div class="attacks" id="attacks"></div>
-
-</div>
-
-<div class="capture-panel">
-  <button class="capture-button" id="captureButton" type="button" onclick="attemptCapture()">🔴 Capturer</button>
-  <button class="capture-button" type="button" onclick="fleeBattle()">🏃 Fuir</button>
-</div>
-
-
-
-<div class="panel">
-
-  <div class="panel-title">Statistiques</div>
-
-  <div class="stats" id="stats"></div>
-
-  <div style="font-size:12px;margin-top:7px;">
-    Talent : <b id="talent">—</b>
-  </div>
-
-</div>
-
-
-<button class="reset" onclick="fleeBattle()">🏃 Fuir le combat</button>
-
-<button class="reset" onclick="newBattle()">
-  🔄 Nouveau combat
-</button>
-
-</div>
-
 </div>
 
 <script>
@@ -1573,31 +1042,20 @@ let starterChosen = false;
 let facing = "down";
 
 const MAPS = [
-  {name:"Maison de Valbois",encounterRate:0,layout:[
-    "TTTTTTTTTTTTTTT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT"
+  {name:"Maison du professeur",encounterRate:0,layout:[
+    "TTTTTTTTTTTTTTT","TGGGGGGGGGGGGGGT","TGGGGGGGGGGGGGGT","TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT","TGGGGGGGGGGGGGGT","TGGGGGGGGGGGGGGT","TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT","TGGGGGGGGGGGGGGT","TTTTTTTTTTTTTTT"
   ]},
-  {name:"Prairie de Valbois",encounterRate:.24,layout:[
-    "TTTTTTTTTTTTTTT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGPPPPPGGGGGT",
-    "TGGGGPGGGPGGGGGT",
-    "TGGGGPPPPPGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGWWWWGGGGGT",
-    "TGGGGGWWWWGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TGGGGGGGGGGGGGGT",
-    "TTTTTTTTTTTTTTT"
+  {name:"Bourg de Valbois",encounterRate:0,layout:[
+    "TTTTTTTTTTTTTTT","TGGGGGGGGGGGGGGT","TGGHHGGGGGHHGGGT","TGGHHGGPPPGGHHGT",
+    "TGGGGGPPPPPGGGGT","TGGGGPPGGGPPGGGT","TGGGGPGWWGPGGGGT","TGGGGPGWWGPGGGGT",
+    "TGGGGPPGGGPPGGGT","TGGGGGGGGGGGGGGT","TTTTTTTTTTTTTTT"
+  ]},
+  {name:"Route des Herbes",encounterRate:.18,layout:[
+    "TTTTTTTTTTTTTTT","TGGGGGGGGGGGGGGT","TGGGPPPPPGGGGGGT","TGGGPGGGGPGGGGGT",
+    "TGGGPGGGGPGGGGGT","TGGGPPPPPPPPGGGT","TGGGGGGWWGGGGGGT","TGGGGGGWWGGGGGGT",
+    "TGGGGGGPPGGGGGGT","TGGGGGGPPGGGGGGT","TTTTTTTTTTTTTTT"
   ]}
 ];
 
@@ -1764,10 +1222,14 @@ function movePlayer(dx,dy){
   const nx = playerPos.x + dx;
   const ny = playerPos.y + dy;
   if(currentScene==="home" && dx===0 && dy<0 && playerPos.y===1 && playerPos.x===7){
-    currentScene="prairie"; mapData=MAPS[1].layout.slice(); playerPos={x:7,y:9};
-    document.getElementById("areaTitle").textContent="Prairie de Valbois";
-    document.getElementById("mapHint").textContent="";
-    document.getElementById("exploreLog").textContent="Tu quittes Valbois. Les hautes herbes s'étendent devant toi.";
+    if(!starterChosen){document.getElementById("exploreLog").textContent="Choisis un compagnon avant de sortir.";return;}
+    currentScene="village"; mapData=MAPS[1].layout.slice(); playerPos={x:7,y:8};
+    document.getElementById("exploreLog").textContent="Tu sors de chez toi. Le Bourg de Valbois s'éveille.";
+    buildMap(); updateExploreUI(); return;
+  }
+  if(currentScene==="village" && dx===0 && dy>0 && playerPos.y===9 && playerPos.x===7){
+    currentScene="route"; mapData=MAPS[2].layout.slice(); playerPos={x:7,y:1};
+    document.getElementById("exploreLog").textContent="La route s'étire vers les hautes herbes.";
     buildMap(); updateExploreUI(); return;
   }
   if(!isWalkable(nx,ny)){
@@ -1835,7 +1297,7 @@ function showCombat(){
 }
 
 function updateExploreUI(){
-  document.getElementById("areaTitle").textContent=currentScene==="home"?"Maison de Valbois":"Prairie de Valbois";
+  document.getElementById("areaTitle").textContent=currentScene==="home"?"Maison du professeur":currentScene==="village"?"Bourg de Valbois":"Route des Herbes";
   document.getElementById("coins").textContent=coins;
   document.getElementById("exploreTeam").innerHTML=playerTeam.length?playerTeam.map(m=>'<div class="explore-team-row"><span>'+m.icon+' <b>'+m.name+'</b></span><span>'+m.hp+'/'+m.maxHp+' PV</span></div>').join(""):'<div class="explore-team-row">Aucun compagnon</div>';
 }
@@ -1869,198 +1331,48 @@ document.addEventListener("keydown", e=>{
 currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:8};buildMap();showExplore();
 
 </script>
-
-
-<style>
-/* FINAL HANDHELD VISUAL PASS */
-#game>h1{font-size:0!important;height:38px!important;background:#274f36!important;border-bottom:3px solid #173524!important}
-#game>h1:after{content:"VALBOIS  •  AVENTURE";font-size:13px;letter-spacing:2px;color:#f6e7b0}
-#exploreScreen{padding:0 8px 16px!important}
-.world-topbar{padding:8px 5px 6px!important;color:#2d422a!important;font-size:12px}
-.map-wrap{border:4px solid #211d18!important;border-radius:4px!important;background:#171e17!important;padding:4px!important;box-shadow:0 4px 0 #0b100c,0 10px 20px rgba(0,0,0,.25)!important}
-#map.map{width:100%!important;aspect-ratio:15/11!important;border-radius:0!important}
-.map-log{font-family:Georgia,serif!important;font-size:12px!important;background:#f5e8bc!important;border:2px solid #80643c!important;box-shadow:0 3px 0 #b89b63!important}
-.explore-team{border:2px solid #80643c!important;background:#f5e8bc!important}
-.dpad{margin-top:10px!important}
-.dpad button{background:#344d38!important;border:2px solid #1c2b20!important;box-shadow:0 3px 0 #17231a!important}
-</style>
 <script>
-/* A cleaner, denser original 16-bit presentation. */
-(function(){
-  const C=32;
-  function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
-  function tile(ctx,x,y,c){rect(ctx,x*C,y*C,C,C,c)}
-  function pixelText(ctx,t,x,y,size,color){
-    ctx.fillStyle=color;ctx.font="bold "+size+"px monospace";ctx.textAlign="center";ctx.fillText(t,x,y);
-  }
-  function grassTile(ctx,x,y){
-    const p=seeded(x,y);
-    tile(ctx,x,y,p>.55?"#79aa51":"#72a34c");
-    ctx.fillStyle=p>.5?"#5f9143":"#4f873d";
-    for(let i=0;i<3;i++){
-      const gx=x*C+4+((p*97+i*13)%24), gy=y*C+25-(i%2)*5;
-      ctx.fillRect(gx,gy,2,6);ctx.fillRect(gx+2,gy-2,2,4);
-    }
-    if(p>.78){ctx.fillStyle="#e7d98a";ctx.fillRect(x*C+20,y*C+10,3,3)}
-  }
-  function pathTile(ctx,x,y){
-    tile(ctx,x,y,"#cdb477");
-    ctx.fillStyle="#b69a62";
-    const p=seeded(x,y);
-    ctx.fillRect(x*C+5+(p*12|0),y*C+7,3,2);
-    ctx.fillRect(x*C+20-(p*7|0),y*C+22,2,2);
-  }
-  function waterTile(ctx,x,y){
-    tile(ctx,x,y,"#4f91aa");
-    ctx.fillStyle="#73b9c7";
-    const o=((x+y)&1)*5;
-    for(let yy=6+o;yy<31;yy+=11){
-      ctx.fillRect(x*C+4,y*C+yy,10,2);ctx.fillRect(x*C+18,y*C+yy-2,8,2);
-    }
-  }
-  function treeTile(ctx,x,y){
-    tile(ctx,x,y,"#6f9f49");
-    ctx.fillStyle="rgba(32,55,30,.28)";ctx.fillRect(x*C+4,y*C+25,24,4);
-    ctx.fillStyle="#254d2e";ctx.fillRect(x*C+7,y*C+10,18,17);
-    ctx.fillStyle="#2f6837";ctx.fillRect(x*C+4,y*C+14,24,12);
-    ctx.fillStyle="#3e7b40";ctx.fillRect(x*C+9,y*C+5,14,17);
-    ctx.fillStyle="#57904a";ctx.fillRect(x*C+12,y*C+2,8,10);
-    ctx.fillStyle="#6ba454";ctx.fillRect(x*C+14,y*C+4,4,4);
-    ctx.fillStyle="#4b3426";ctx.fillRect(x*C+14,y*C+24,5,8);
-  }
-  function houseTile(ctx,x,y,ch){
-    const px=x*C,py=y*C;
-    if(ch==="R"){
-      tile(ctx,x,y,"#a44d3e");ctx.fillStyle="#c9654e";
-      for(let i=-C;i<C*2;i+=8)ctx.fillRect(px+i,py,4,C);
-      ctx.fillStyle="#71372f";ctx.fillRect(px,py+27,C,5);
-    }else{
-      tile(ctx,x,y,"#dfc487");
-      ctx.fillStyle="#7d5938";ctx.fillRect(px+3,py+4,26,4);
-      ctx.fillStyle="#8eaaa0";ctx.fillRect(px+6,py+11,9,9);ctx.fillRect(px+18,py+11,8,9);
-      ctx.fillStyle="#d9eadc";ctx.fillRect(px+8,py+13,5,5);ctx.fillRect(px+20,py+13,5,5);
-      if(ch==="H"){ctx.fillStyle="#6f4b32";ctx.fillRect(px+13,py+21,7,11)}
-    }
-  }
-  function drawHome(ctx){
-    for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){
-      const px=x*C,py=y*C;
-      rect(ctx,px,py,C,C,(x+y)%2?"#c9945f":"#d3a06a");
-      ctx.fillStyle="#a96f49";ctx.fillRect(px,py+29,C,3);
-    }
-    /* walls */
-    rect(ctx,0,0,480,10,"#553b2c");rect(ctx,0,0,10,352,"#553b2c");rect(ctx,470,0,10,352,"#553b2c");
-    rect(ctx,0,342,480,10,"#553b2c");
-    /* rug */
-    rect(ctx,5*C,6*C,5*C,2*C,"#8c5c45");
-    rect(ctx,5*C+5,6*C+5,150-10,54,"#d8b36f");
-    for(let i=0;i<5;i++){rect(ctx,5*C+10+i*27,6*C+10,2,42,"#b58c59")}
-    /* bed */
-    rect(ctx,1*C,2*C,3*C,3*C,"#704b38");
-    rect(ctx,1*C+5,2*C+5,86,54,"#e8d6a8");
-    rect(ctx,1*C+10,2*C+8,76,18,"#b8c8c0");
-    rect(ctx,1*C+10,2*C+28,76,26,"#cfae73");
-    /* bookshelf */
-    rect(ctx,11*C,2*C,2*C,3*C,"#68472f");
-    for(let i=0;i<4;i++)rect(ctx,11*C+5,2*C+7+i*20,54,12,i%2?"#b85b42":"#5d7c54");
-    /* windows */
-    for(const wx of [5,9]){
-      rect(ctx,wx*C,0,2*C,7,"#6b4a34");rect(ctx,wx*C+4,4,56,18,"#7fc0cf");
-      rect(ctx,wx*C+31,4,4,18,"#d9c68e");rect(ctx,wx*C+4,12,56,4,"#d9c68e");
-    }
-    /* starter table */
-    rect(ctx,5*C,2*C,5*C,2*C,"#6f472e");
-    rect(ctx,5*C+5,2*C+5,150,48,"#9b653d");
-    rect(ctx,5*C+13,4*C-3,16,5,"#5d3b28");rect(ctx,9*C-29,4*C-3,16,5,"#5d3b28");
-    for(const x of [6,7,8]){
-      ctx.fillStyle="#e4c87e";ctx.beginPath();ctx.arc(x*C+16,2*C+16,11,0,Math.PI*2);ctx.fill();
-    }
-    /* exit door */
-    rect(ctx,7*C+8,0,48,10,"#8b5a39");rect(ctx,7*C+15,2,34,8,"#b37a4d");
-    pixelText(ctx,"SORTIE",7.5*C,8,7,"#f8e6aa");
-    /* starters */
-    drawStarterSprite(ctx,6*C+16,2*C+16,"Salamèche");
-    drawStarterSprite(ctx,7*C+16,2*C+16,"Néréide");
-    drawStarterSprite(ctx,8*C+16,2*C+16,"Mousselet");
-    /* wall plaque */
-    rect(ctx,11*C+4,6*C+4,56,24,"#7b5a36");rect(ctx,11*C+8,6*C+8,48,16,"#e8d49a");
-    pixelText(ctx,"VALBOIS",12*C,6*C+19,7,"#58452c");
-  }
-  function drawStarterBetter(ctx,x,y,type){
-    ctx.save();ctx.translate(x,y);
-    ctx.fillStyle="rgba(25,30,18,.25)";ctx.fillRect(-10,10,20,3);
-    if(type==="Salamèche"){
-      ctx.fillStyle="#d95d36";ctx.fillRect(-10,-4,20,13);ctx.fillRect(-6,-10,12,8);
-      ctx.fillStyle="#f08b43";ctx.fillRect(-4,-13,8,6);ctx.fillStyle="#f6c36d";ctx.fillRect(-7,0,5,5);
-      ctx.fillStyle="#2b3023";ctx.fillRect(-5,-5,3,3);ctx.fillRect(3,-5,3,3);
-      ctx.fillStyle="#e7a536";ctx.fillRect(9,-10,4,9);
-    }else if(type==="Néréide"){
-      ctx.fillStyle="#438fac";ctx.fillRect(-11,-4,22,14);ctx.fillRect(-7,-10,14,7);
-      ctx.fillStyle="#70bdc8";ctx.fillRect(-5,-14,10,6);ctx.fillStyle="#d7efe7";ctx.fillRect(-7,2,4,4);
-      ctx.fillStyle="#27343a";ctx.fillRect(-5,-5,3,3);ctx.fillRect(3,-5,3,3);
-      ctx.fillStyle="#79c7d0";ctx.fillRect(9,-7,5,9);
-    }else{
-      ctx.fillStyle="#5e9147";ctx.fillRect(-11,-4,22,14);ctx.fillRect(-7,-10,14,7);
-      ctx.fillStyle="#89b95a";ctx.fillRect(-4,-15,8,8);ctx.fillStyle="#dfe3a9";ctx.fillRect(-7,2,5,5);
-      ctx.fillStyle="#273525";ctx.fillRect(-5,-5,3,3);ctx.fillRect(3,-5,3,3);
-      ctx.fillStyle="#4e7e3b";ctx.fillRect(-13,-10,5,7);ctx.fillRect(8,-11,5,8);
-    }
-    ctx.restore();
-  }
-  function playerBetter(ctx){
-    const px=playerPos.x*C,py=playerPos.y*C;
-    ctx.fillStyle="rgba(20,25,18,.32)";ctx.fillRect(px+7,py+27,18,4);
-    ctx.fillStyle="#2d537c";ctx.fillRect(px+9,py+14,14,12);
-    ctx.fillStyle="#e9bd88";ctx.fillRect(px+10,py+6,12,10);
-    ctx.fillStyle="#503727";ctx.fillRect(px+9,py+4,14,5);
-    ctx.fillStyle="#e9d7ad";ctx.fillRect(px+6,py+25,8,5);ctx.fillRect(px+18,py+25,8,5);
-    ctx.fillStyle="#202b24";ctx.fillRect(px+13,py+10,2,2);
-    ctx.fillStyle="#f0d77f";ctx.fillRect(px+8,py+18,3,5);
-  }
-  window.drawStarterSprite=drawStarterBetter;
-  window.renderMap=function(){
-    const canvas=document.getElementById("map");if(!canvas)return;
-    const ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,canvas.width,canvas.height);
-    if(currentScene==="home"){drawHome(ctx);}
-    else{
-      for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){
-        const ch=mapData[y][x];
-        if(ch==="T")treeTile(ctx,x,y);else if(ch==="G")grassTile(ctx,x,y);else if(ch==="P")pathTile(ctx,x,y);else if(ch==="W")waterTile(ctx,x,y);else if(ch==="H"||ch==="R")houseTile(ctx,x,y,ch);else if(ch==="F"){pathTile(ctx,x,y);ctx.fillStyle="#70492f";ctx.fillRect(x*C+3,y*C+11,26,5);ctx.fillRect(x*C+6,y*C+5,4,20);ctx.fillRect(x*C+22,y*C+5,4,20);}else grassTile(ctx,x,y);
-      }
-    }
-    playerBetter(ctx);
-  };
-  window.buildMap=function(){const c=document.getElementById("map");if(!c)return;c.width=480;c.height=352;renderMap();};
-  /* Make the interaction prompt contextual instead of permanently covering the scene. */
-  window.movePlayer=function(dx,dy){
-    if(!document.getElementById("exploreScreen").classList.contains("active"))return;
-    if(dx<0)facing="left";if(dx>0)facing="right";if(dy<0)facing="up";if(dy>0)facing="down";
-    if(currentScene==="home"&&dx===0&&dy<0&&playerPos.y===1&&playerPos.x===7){
-      if(!starterChosen){document.getElementById("exploreLog").textContent="Choisis d'abord un compagnon sur la table.";return;}
-      currentScene="prairie";mapData=MAPS[1].layout.slice();playerPos={x:7,y:9};
-      document.getElementById("mapHint").textContent="";document.getElementById("exploreLog").textContent="La porte s'ouvre sur les prairies de Valbois.";
-      updateExploreUI();renderMap();return;
-    }
-    const nx=playerPos.x+dx,ny=playerPos.y+dy;
-    if(!isWalkable(nx,ny)){renderMap();return;}
-    playerPos={x:nx,y:ny};renderMap();
-    if(currentScene==="home"){
-      if(Math.abs(playerPos.x-7)<=1&&playerPos.y<=3&&!starterChosen)document.getElementById("mapHint").textContent="Touche un compagnon sur la table.";
-      else if(!starterChosen)document.getElementById("mapHint").textContent="Explore la maison et approche-toi de la table.";
-      else if(playerPos.y<=2)document.getElementById("mapHint").textContent="Passe par la porte au nord.";
-      else document.getElementById("mapHint").textContent="";
-      return;
-    }
-    const terrain=mapData[ny][nx];
-    if(terrain==="G"){
-      document.getElementById("exploreLog").textContent=["Les herbes bruissent doucement.","Un mouvement furtif traverse les hautes herbes.","Le vent fait onduler la prairie."][Math.floor(Math.random()*3)];
-      if(Math.random()<MAPS[1].encounterRate){startWildEncounter();return;}
-    }else document.getElementById("exploreLog").textContent="Tu suis le petit chemin de Valbois.";
-    updateExploreUI();
-  };
-  /* Restart on the actual current DOM after the malformed duplicate block is gone. */
-  currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:8};starterChosen=false;buildMap();showExplore();
-})();
+// --- New original pixel-art renderer ---
+const PX=32;
+function box(c,x,y,w,h,col){c.fillStyle=col;c.fillRect(x,y,w,h)}
+function h(c,x,y,col){box(c,x*PX,y*PX,PX,PX,col)}
+function hash(x,y){return ((x*928371+y*12377)&255)/255}
+function drawTree(c,x,y){h(c,x,y,"#6e984b");box(c,x*PX+3,y*PX+10,26,18,"#2f5e37");box(c,x*PX+7,y*PX+4,18,21,"#3e7540");box(c,x*PX+12,y*PX+1,9,14,"#568d49");box(c,x*PX+14,y*PX+23,5,9,"#69472d")}
+function drawGrass(c,x,y){h(c,x,y,hash(x,y)>.5?"#79a64f":"#72a04b");c.fillStyle="#4e843e";for(let i=0;i<4;i++){let q=(hash(x+i,y)*25)|0;c.fillRect(x*PX+3+q,y*PX+23-(i%2)*5,2,7)}if(hash(x,y)>.82){c.fillStyle="#e8d88b";c.fillRect(x*PX+20,y*PX+10,3,3)}}
+function drawPath(c,x,y){h(c,x,y,"#cdb477");c.fillStyle="#ae925b";c.fillRect(x*PX+5+(hash(x,y)*12|0),y*PX+8,3,2);c.fillRect(x*PX+21-(hash(y,x)*8|0),y*PX+23,2,2)}
+function drawWater(c,x,y){h(c,x,y,"#4f91ab");c.fillStyle="#78bdc8";c.fillRect(x*PX+4,y*PX+8,10,2);c.fillRect(x*PX+18,y*PX+18,9,2);c.fillRect(x*PX+8,y*PX+28,12,2)}
+function drawHouse(c,x,y){h(c,x,y,"#d9bd7b");box(c,x*PX+3,y*PX+4,26,5,"#784d35");box(c,x*PX+6,y*PX+12,20,9,"#7ca0a0");box(c,x*PX+8,y*PX+14,7,5,"#d8ece0");box(c,x*PX+18,y*PX+22,7,10,"#754c32")}
+function drawPlayer(c){let x=playerPos.x*PX,y=playerPos.y*PX;box(c,x+7,y+27,18,3,"rgba(25,35,20,.3)");box(c,x+9,y+14,14,12,"#315b8b");box(c,x+10,y+6,12,10,"#efc08a");box(c,x+9,y+4,14,6,"#503727");box(c,x+7,y+25,8,5,"#e9d5aa");box(c,x+17,y+25,8,5,"#e9d5aa")}
+function drawStarter(c,x,y,type){let X=x*PX+16,Y=y*PX+16;c.fillStyle="rgba(20,25,18,.25)";c.fillRect(X-11,Y+10,22,3);if(type==="Salamèche"){box(c,X-10,Y-5,20,14,"#d85c36");box(c,X-6,Y-12,12,9,"#e8783d");box(c,X-3,Y-15,7,6,"#f2a043");box(c,X-6,Y-3,4,4,"#f5c66d");box(c,X+3,Y-3,4,4,"#f5c66d");box(c,X+9,Y-10,4,9,"#e7a33d")}else if(type==="Néréide"){box(c,X-11,Y-5,22,14,"#3f8eaa");box(c,X-7,Y-12,14,8,"#62b3c2");box(c,X-4,Y-16,8,6,"#8fd2d0");box(c,X-6,Y-3,3,3,"#e6f0df");box(c,X+3,Y-3,3,3,"#e6f0df")}else{box(c,X-11,Y-5,22,14,"#5e9147");box(c,X-7,Y-12,14,8,"#82ad53");box(c,X-4,Y-16,8,7,"#a8c968");box(c,X-6,Y-3,3,3,"#e8e2b2");box(c,X+3,Y-3,3,3,"#e8e2b2");box(c,X-13,Y-11,5,7,"#4c7b3d");box(c,X+8,Y-11,5,7,"#4c7b3d")}}
+function renderOpening(c){
+ c.imageSmoothingEnabled=false;c.clearRect(0,0,480,352);
+ if(currentScene==="home"){
+   for(let y=0;y<11;y++)for(let x=0;x<15;x++)h(c,x,y,(x+y)%2?"#c9925e":"#d6a06a");
+   box(c,0,0,480,10,"#51382a");box(c,0,0,10,352,"#51382a");box(c,470,0,10,352,"#51382a");
+   // bedroom
+   box(c,32,64,96,96,"#704936");box(c,37,69,86,52,"#e7d3a5");box(c,43,72,74,18,"#b9c9bf");
+   // table / starter display
+   box(c,160,64,160,64,"#70472f");box(c,166,69,148,48,"#9a633c");
+   for(let x=6;x<=8;x++){c.fillStyle="#ead08b";c.beginPath();c.arc(x*32+16,80,11,0,Math.PI*2);c.fill()}
+   drawStarter(c,6,2,"Salamèche");drawStarter(c,7,2,"Néréide");drawStarter(c,8,2,"Mousselet");
+   // bookshelf
+   box(c,352,64,64,96,"#68472f");for(let i=0;i<4;i++)box(c,357,71+i*20,54,11,i%2?"#b85b42":"#5d7c54");
+   // windows
+   for(let x of [5,10]){box(c,x*32,8,64,20,"#704b35");box(c,x*32+5,11,54,14,"#82b9c4");box(c,x*32+30,11,4,14,"#e2cb91")}
+   // rug and exit
+   box(c,160,192,160,64,"#8c5c45");box(c,165,197,150,54,"#d6b26e");box(c,232,0,16,10,"#b57b4d");
+   c.fillStyle="#f5e6af";c.font="bold 8px monospace";c.textAlign="center";c.fillText("CHOISIS TON COMPAGNON",240,150);
+ }else{
+   for(let y=0;y<11;y++)for(let x=0;x<15;x++){let ch=mapData[y][x];if(ch==="T")drawTree(c,x,y);else if(ch==="G")drawGrass(c,x,y);else if(ch==="P")drawPath(c,x,y);else if(ch==="W")drawWater(c,x,y);else if(ch==="H")drawHouse(c,x,y);else{h(c,x,y,"#76a84c")}}
+   // village plaza details
+   if(currentScene==="village"){for(let x of [5,9]){c.fillStyle="#e7d38f";c.fillRect(x*32+12,5*32+10,8,8)}}
+ }
+ drawPlayer(c);
+}
+const oldRenderMap=window.renderMap;
+window.renderMap=function(){const c=document.getElementById("map");if(c)renderOpening(c)}
+window.buildMap=function(){const c=document.getElementById("map");if(c){c.width=480;c.height=352;renderMap()}}
+document.getElementById("map").addEventListener("click",handleStarterTap);
+renderMap();
 </script>
-</body>
-</html>
+</body></html>
