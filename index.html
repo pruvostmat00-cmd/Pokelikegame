@@ -452,7 +452,16 @@ body{background:radial-gradient(circle at 50% 0%,#315d48 0,#183526 42%,#0d1d16 1
 @media(max-width:390px){.starter-choice{min-height:165px}.starter-art{height:76px;font-size:48px}.starter-name{font-size:12px}.starter-stats{font-size:8px}}
 
 </style>
-</head>
+<style>
+body{background:#14271d!important;font-family:system-ui,sans-serif!important}
+#game{max-width:540px!important;background:#ead79e!important;box-shadow:0 20px 70px #07110b!important}
+#game>h1{height:44px!important;padding:7px 14px!important;background:linear-gradient(#477f55,#285239)!important;font-size:16px!important;letter-spacing:2px!important}
+.world-topbar{display:flex;justify-content:space-between;padding:9px 3px 5px;color:#30442b}
+.map-wrap{position:relative!important;margin:0!important;padding:5px!important;border:5px solid #392d24!important;border-radius:8px!important;background:#17251c!important;box-shadow:0 5px 0 #0e1711,0 12px 25px rgba(0,0,0,.2)!important}
+#map.map{width:100%!important;aspect-ratio:15/11!important}
+.map-hint{position:absolute;left:13px;right:13px;bottom:13px;padding:7px;border:2px solid #61492c;border-radius:5px;background:rgba(255,242,194,.92);color:#3b3523;font-size:10px;font-weight:700;text-align:center}
+.map-log{margin:8px 2px!important;background:#fff0c3!important;border:2px solid #725c38!important;border-radius:5px!important;color:#3b3726!important}
+</style></head>
 
 <body>
 
@@ -460,23 +469,18 @@ body{background:radial-gradient(circle at 50% 0%,#315d48 0,#183526 42%,#0d1d16 1
 
 <h1>🐾 Pokelikegame</h1>
 
-<div id="starterScreen" class="screen active">
-  <div class="starter-intro">
-    <div class="starter-hero"><div class="hero-sun"></div><div class="hero-title">VALBOIS</div><div class="hero-sub">Une nouvelle aventure commence</div></div>
-    <div class="starter-copy"><div class="starter-kicker">Premier compagnon</div><h2>Choisis ton partenaire</h2><p>Trois créatures. Trois tempéraments. Une aventure à écrire.</p></div>
-  </div>
-  <div class="starter-list" id="starterList"></div><div class="starter-footer">Chaque compagnon est unique : ses caractéristiques sont générées à sa rencontre.</div>
+<div id="exploreScreen" class="screen active">
+  <div class="world-topbar"><b id="areaTitle">Maison de Valbois</b><span>✦ <b id="coins">0</b></span></div>
+  <div class="map-wrap"><canvas class="map" id="map" width="480" height="352"></canvas><div id="mapHint" class="map-hint">Approche-toi de la table et choisis ton compagnon.</div></div>
+  <div class="map-log" id="exploreLog">Une douce lumière entre par la fenêtre. Trois compagnons attendent sur la table.</div>
+  <div class="dpad" aria-label="Contrôles"><button class="up" type="button" onclick="movePlayer(0,-1)">▲</button><button class="left" type="button" onclick="movePlayer(-1,0)">◀</button><button class="down" type="button" onclick="movePlayer(0,1)">▼</button><button class="right" type="button" onclick="movePlayer(1,0)">▶</button></div>
+  <div class="explore-team"><div class="panel-title">Équipe</div><div id="exploreTeam"></div></div>
 </div>
 
-<div id="exploreScreen" class="screen">
+<div id="combatScreen" class="screen"> class="screen">
   <h1>🌿 Exploration</h1>
   <div class="map-wrap">
     <canvas class="map" id="map" width="480" height="352"></canvas>
-  </div>
-  <div class="map-hud">
-    <span>📍 <b id="areaTitle">Route 1</b></span>
-    <span>👣 Pas : <b id="steps">0</b></span>
-    <span>🪙 <b id="coins">0</b></span>
   </div>
   <div class="map-log" id="exploreLog">Déplace-toi dans la zone. Les hautes herbes peuvent cacher des créatures sauvages.</div>
   <div class="dpad" aria-label="Contrôles de déplacement">
@@ -924,7 +928,6 @@ let activeIndex = 0;
 let battleOver = false;
 let xp = 0;
 let coins = 0;
-let steps = 0;
 let areaIndex = 0;
 const AREAS = [
   {name:"🌲 Bois de Brume", desc:"Une zone boisée proche du refuge. Des créatures sauvages peuvent apparaître dans les hautes herbes."},
@@ -1422,7 +1425,6 @@ function updateExploreUI() {
 }
 
 function exploreStep() {
-  steps++;
   const roll = Math.random();
 
   if (roll < 0.32) {
@@ -1546,18 +1548,14 @@ function showStarter(){
 }
 
 function chooseStarter(name){
-  const species = SPECIES.find(s=>s.name===name);
-  playerTeam = [generateMonster(species)];
-  activeIndex = 0;
-  battleOver = false;
-  playerTeam[0].hp = playerTeam[0].maxHp;
-  playerPos = {x:7,y:6};
-  mapData = MAPS[0].layout.slice();
-  document.getElementById("starterScreen").classList.remove("active");
-  showExplore("Tu sors de ta maison avec "+name+". La prairie juste au sud est couverte de hautes herbes.");
-  buildMap();
+  if(starterChosen)return;
+  const species=SPECIES.find(s=>s.name===name);
+  playerTeam=[generateMonster(species)];activeIndex=0;battleOver=false;starterChosen=true;
+  currentScene="home";playerPos={x:7,y:8};
+  document.getElementById("mapHint").textContent="";
+  document.getElementById("exploreLog").textContent="Tu choisis "+name+". La porte est juste au nord.";
+  updateExploreUI();renderMap();
 }
-
 function attemptCapture(){
   if(battleOver || !enemy || enemy.hp<=0) return;
   if(playerTeam.length>=3){
@@ -1585,44 +1583,38 @@ function attemptCapture(){
 const MAP_W = 15;
 const MAP_H = 11;
 let mapData = [];
-let playerPos = {x:7,y:5};
+let playerPos = {x:7,y:8};
+let currentScene = "home";
+let starterChosen = false;
 let facing = "down";
 
 const MAPS = [
-  {
-    name:"Valbois — Route 1",
-    encounterRate:.18,
-    layout:[
-      "TTTTTTTTTTTTTTT",
-      "TTTTTTRRRRTTTTTT",
-      "TTTTTRHHHRTTTTTT",
-      "TTTTTRHHHRTTTTTT",
-      "TTTTTRHPHRTTTTTT",
-      "TTTTTRPPPRTTTTTT",
-      "TTTTTRPPPPPPPPPT",
-      "TTTTTRGGGGGGGGGT",
-      "TTTTTRGGGFGGGGGT",
-      "TTTTTRGGGGGGGGGT",
-      "TTTTTTTTTTTTTTT"
-    ]
-  },
-  {
-    name:"Prairie de Valbois",
-    encounterRate:.24,
-    layout:[
-      "TTTTTTTTTTTTTTT",
-      "TGGGGGGGGGGGGGGT",
-      "TGGGGPPPPPGGGGGT",
-      "TGGGGPGGGPGGGGGT",
-      "TGGGGPPPPPGGGGGT",
-      "TGGGGGGGGGGGGGGT",
-      "TGGGGGWWWWGGGGGT",
-      "TGGGGGWWWWGGGGGT",
-      "TGGGGGGGGGGGGGGT",
-      "TGGGGGGGGGGGGGGT",
-      "TTTTTTTTTTTTTTT"
-    ]
-  }
+  {name:"Maison de Valbois",encounterRate:0,layout:[
+    "TTTTTTTTTTTTTTT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT"
+  ]},
+  {name:"Prairie de Valbois",encounterRate:.24,layout:[
+    "TTTTTTTTTTTTTTT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGPPPPPGGGGGT",
+    "TGGGGPGGGPGGGGGT",
+    "TGGGGPPPPPGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGWWWWGGGGGT",
+    "TGGGGGWWWWGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TGGGGGGGGGGGGGGT",
+    "TTTTTTTTTTTTTTT"
+  ]}
 ];
 
 function tileInfo(ch){
@@ -1732,27 +1724,48 @@ function drawPlayer(ctx){
   ctx.fillStyle="#fff";ctx.fillRect(px+13,py+10,2,2);
 }
 
+function drawHomeFurniture(ctx){
+  ctx.fillStyle="#8b5b3b";ctx.fillRect(5*32,2*32,5*32,2*32);
+  ctx.fillStyle="#b77b49";ctx.fillRect(6*32,2*32+4,3*32,32);
+  ctx.fillStyle="#d8b67d";
+  for(const x of [6,7,8]){ctx.beginPath();ctx.arc(x*32+16,2*32+16,7,0,Math.PI*2);ctx.fill()}
+  ctx.fillStyle="#70472f";ctx.fillRect(2*32,2*32,2*32,3*32);
+  ctx.fillStyle="#d9bd86";ctx.fillRect(2*32+5,2*32+5,54,54);
+  ctx.fillStyle="#6f4a35";ctx.fillRect(11*32,1*32,2*32,3*32);
+  ctx.fillStyle="#f2d58e";ctx.fillRect(11*32+5,1*32+5,54,54);
+  ctx.fillStyle="#fff1bd";ctx.font="bold 8px system-ui";ctx.textAlign="center";ctx.fillText("CHOISIS TON COMPAGNON",7.5*32,4*32-5);
+  drawStarterSprite(ctx,6*32+16,2*32+16,"Salamèche");
+  drawStarterSprite(ctx,7*32+16,2*32+16,"Néréide");
+  drawStarterSprite(ctx,8*32+16,2*32+16,"Mousselet");
+}
+function drawStarterSprite(ctx,x,y,type){
+  ctx.save();ctx.translate(x,y);ctx.fillStyle="rgba(30,25,15,.2)";ctx.fillRect(-9,8,18,3);
+  if(type==="Salamèche"){ctx.fillStyle="#e96b39";ctx.fillRect(-8,-6,16,13);ctx.fillStyle="#f29a50";ctx.fillRect(-5,-11,10,7);ctx.fillStyle="#e0c48b";ctx.fillRect(-5,-2,2,2);ctx.fillRect(3,-2,2,2);ctx.fillStyle="#f4b13e";ctx.fillRect(8,-11,3,7)}
+  else if(type==="Néréide"){ctx.fillStyle="#4d9fbe";ctx.fillRect(-9,-5,18,13);ctx.fillStyle="#79c8d4";ctx.fillRect(-6,-10,12,7);ctx.fillStyle="#d4efe5";ctx.fillRect(-4,-1,2,2);ctx.fillRect(3,-1,2,2)}
+  else{ctx.fillStyle="#719f4b";ctx.fillRect(-9,-4,18,14);ctx.fillStyle="#94bd5c";ctx.fillRect(-6,-10,12,8);ctx.fillStyle="#e2dcae";ctx.fillRect(-4,-1,2,2);ctx.fillRect(3,-1,2,2)}
+  ctx.restore();
+}
 function renderMap(){
-  const canvas=document.getElementById("map");
-  if(!canvas) return;
-  const ctx=canvas.getContext("2d");
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.imageSmoothingEnabled=false;
-  for(let y=0;y<MAP_H;y++){
-    for(let x=0;x<MAP_W;x++){
-      const ch=mapData[y][x];
-      if(ch==="T") drawPixelTree(ctx,x,y);
-      else if(ch==="G") drawGrass(ctx,x,y);
-      else if(ch==="P") drawPath(ctx,x,y);
-      else if(ch==="W") drawWater(ctx,x,y);
-      else if(ch==="H"||ch==="R") drawHouse(ctx,x,y,ch);
-      else if(ch==="F") drawFence(ctx,x,y);
-      else {ctx.fillStyle="#76a94c";ctx.fillRect(x*32,y*32,32,32);}
-    }
+  const canvas=document.getElementById("map");if(!canvas)return;
+  const ctx=canvas.getContext("2d");ctx.clearRect(0,0,canvas.width,canvas.height);ctx.imageSmoothingEnabled=false;
+  if(currentScene==="home"){
+    for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){const X=x*32,Y=y*32;ctx.fillStyle=(x+y)%2?"#c89460":"#cf9d68";ctx.fillRect(X,Y,32,32);ctx.fillStyle="#a96f49";ctx.fillRect(X,Y+30,32,2)}
+    ctx.fillStyle="#5f4534";ctx.fillRect(0,0,480,8);ctx.fillRect(0,0,8,352);ctx.fillRect(472,0,8,352);ctx.fillRect(0,344,480,8);
+    drawHomeFurniture(ctx);
+  }else{
+    for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){const ch=mapData[y][x];if(ch==="T")drawPixelTree(ctx,x,y);else if(ch==="G")drawGrass(ctx,x,y);else if(ch==="P")drawPath(ctx,x,y);else if(ch==="W")drawWater(ctx,x,y);else if(ch==="H"||ch==="R")drawHouse(ctx,x,y,ch);else if(ch==="F")drawFence(ctx,x,y);else{ctx.fillStyle="#76a94c";ctx.fillRect(x*32,y*32,32,32)}}
   }
   drawPlayer(ctx);
 }
-
+function handleStarterTap(e){
+  if(currentScene!=="home"||starterChosen)return;
+  const c=document.getElementById("map"),r=c.getBoundingClientRect();
+  const x=Math.floor((e.clientX-r.left)/(r.width/MAP_W)),y=Math.floor((e.clientY-r.top)/(r.height/MAP_H));
+  if(y===2&&x===6)chooseStarter("Salamèche");
+  else if(y===2&&x===7)chooseStarter("Néréide");
+  else if(y===2&&x===8)chooseStarter("Mousselet");
+}
+document.addEventListener("click",e=>{if(e.target.closest("#map"))handleStarterTap(e)});
 function isWalkable(x,y){
   if(x<0 || y<0 || x>=MAP_W || y>=MAP_H) return false;
   return tileInfo(mapData[y][x]).walk;
@@ -1823,9 +1836,8 @@ function startWildEncounter(){
 function showExplore(logText){
   document.getElementById("combatScreen").classList.remove("active");
   document.getElementById("exploreScreen").classList.add("active");
-  if(logText) document.getElementById("exploreLog").textContent = logText;
-  updateExploreUI();
-  renderMap();
+  if(logText)document.getElementById("exploreLog").textContent=logText;
+  updateExploreUI();renderMap();
 }
 
 function showCombat(){
@@ -1834,13 +1846,9 @@ function showCombat(){
 }
 
 function updateExploreUI(){
-  document.getElementById("areaTitle").textContent = MAPS[areaIndex].name;
-  document.getElementById("steps").textContent = steps;
-  document.getElementById("coins").textContent = coins;
-  document.getElementById("exploreTeam").innerHTML = playerTeam.map((m,i)=>
-    '<div class="explore-team-row"><span>' + m.icon + ' <b>' + m.name + '</b></span><span>' +
-    m.hp + '/' + m.maxHp + ' PV' + (i===activeIndex ? ' · actif' : '') + '</span></div>'
-  ).join("");
+  document.getElementById("areaTitle").textContent=currentScene==="home"?"Maison de Valbois":"Prairie de Valbois";
+  document.getElementById("coins").textContent=coins;
+  document.getElementById("exploreTeam").innerHTML=playerTeam.length?playerTeam.map(m=>'<div class="explore-team-row"><span>'+m.icon+' <b>'+m.name+'</b></span><span>'+m.hp+'/'+m.maxHp+' PV</span></div>').join(""):'<div class="explore-team-row">Aucun compagnon</div>';
 }
 
 function changeArea(){
@@ -1869,9 +1877,7 @@ document.addEventListener("keydown", e=>{
 });
 
 
-mapData = MAPS[0].layout.slice();
-buildMap();
-showStarter();
+currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:8};buildMap();showExplore();
 
 </script>
 
