@@ -477,23 +477,7 @@ body{background:#14271d!important;font-family:system-ui,sans-serif!important}
   <div class="explore-team"><div class="panel-title">Équipe</div><div id="exploreTeam"></div></div>
 </div>
 
-<div id="combatScreen" class="screen"> class="screen">
-  <h1>🌿 Exploration</h1>
-  <div class="map-wrap">
-    <canvas class="map" id="map" width="480" height="352"></canvas>
-  </div>
-  <div class="map-log" id="exploreLog">Déplace-toi dans la zone. Les hautes herbes peuvent cacher des créatures sauvages.</div>
-  <div class="dpad" aria-label="Contrôles de déplacement">
-    <button class="up" type="button" onclick="movePlayer(0,-1)">▲</button>
-    <button class="left" type="button" onclick="movePlayer(-1,0)">◀</button>
-    <button class="down" type="button" onclick="movePlayer(0,1)">▼</button>
-    <button class="right" type="button" onclick="movePlayer(1,0)">▶</button>
-  </div>
-  <div class="explore-team">
-    <div class="panel-title">Équipe</div>
-    <div id="exploreTeam"></div>
-  </div>
-</div>
+
 
 <div id="combatScreen" class="screen">
 
@@ -1793,8 +1777,7 @@ function movePlayer(dx,dy){
   }
 
   playerPos = {x:nx,y:ny};
-  steps++;
-  renderMap();
+renderMap();
   updateExploreUI();
 
   const terrain = mapData[ny][nx];
@@ -1887,5 +1870,197 @@ currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:8};buildMap(
 
 </script>
 
+
+<style>
+/* FINAL HANDHELD VISUAL PASS */
+#game>h1{font-size:0!important;height:38px!important;background:#274f36!important;border-bottom:3px solid #173524!important}
+#game>h1:after{content:"VALBOIS  •  AVENTURE";font-size:13px;letter-spacing:2px;color:#f6e7b0}
+#exploreScreen{padding:0 8px 16px!important}
+.world-topbar{padding:8px 5px 6px!important;color:#2d422a!important;font-size:12px}
+.map-wrap{border:4px solid #211d18!important;border-radius:4px!important;background:#171e17!important;padding:4px!important;box-shadow:0 4px 0 #0b100c,0 10px 20px rgba(0,0,0,.25)!important}
+#map.map{width:100%!important;aspect-ratio:15/11!important;border-radius:0!important}
+.map-log{font-family:Georgia,serif!important;font-size:12px!important;background:#f5e8bc!important;border:2px solid #80643c!important;box-shadow:0 3px 0 #b89b63!important}
+.explore-team{border:2px solid #80643c!important;background:#f5e8bc!important}
+.dpad{margin-top:10px!important}
+.dpad button{background:#344d38!important;border:2px solid #1c2b20!important;box-shadow:0 3px 0 #17231a!important}
+</style>
+<script>
+/* A cleaner, denser original 16-bit presentation. */
+(function(){
+  const C=32;
+  function rect(ctx,x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(x,y,w,h)}
+  function tile(ctx,x,y,c){rect(ctx,x*C,y*C,C,C,c)}
+  function pixelText(ctx,t,x,y,size,color){
+    ctx.fillStyle=color;ctx.font="bold "+size+"px monospace";ctx.textAlign="center";ctx.fillText(t,x,y);
+  }
+  function grassTile(ctx,x,y){
+    const p=seeded(x,y);
+    tile(ctx,x,y,p>.55?"#79aa51":"#72a34c");
+    ctx.fillStyle=p>.5?"#5f9143":"#4f873d";
+    for(let i=0;i<3;i++){
+      const gx=x*C+4+((p*97+i*13)%24), gy=y*C+25-(i%2)*5;
+      ctx.fillRect(gx,gy,2,6);ctx.fillRect(gx+2,gy-2,2,4);
+    }
+    if(p>.78){ctx.fillStyle="#e7d98a";ctx.fillRect(x*C+20,y*C+10,3,3)}
+  }
+  function pathTile(ctx,x,y){
+    tile(ctx,x,y,"#cdb477");
+    ctx.fillStyle="#b69a62";
+    const p=seeded(x,y);
+    ctx.fillRect(x*C+5+(p*12|0),y*C+7,3,2);
+    ctx.fillRect(x*C+20-(p*7|0),y*C+22,2,2);
+  }
+  function waterTile(ctx,x,y){
+    tile(ctx,x,y,"#4f91aa");
+    ctx.fillStyle="#73b9c7";
+    const o=((x+y)&1)*5;
+    for(let yy=6+o;yy<31;yy+=11){
+      ctx.fillRect(x*C+4,y*C+yy,10,2);ctx.fillRect(x*C+18,y*C+yy-2,8,2);
+    }
+  }
+  function treeTile(ctx,x,y){
+    tile(ctx,x,y,"#6f9f49");
+    ctx.fillStyle="rgba(32,55,30,.28)";ctx.fillRect(x*C+4,y*C+25,24,4);
+    ctx.fillStyle="#254d2e";ctx.fillRect(x*C+7,y*C+10,18,17);
+    ctx.fillStyle="#2f6837";ctx.fillRect(x*C+4,y*C+14,24,12);
+    ctx.fillStyle="#3e7b40";ctx.fillRect(x*C+9,y*C+5,14,17);
+    ctx.fillStyle="#57904a";ctx.fillRect(x*C+12,y*C+2,8,10);
+    ctx.fillStyle="#6ba454";ctx.fillRect(x*C+14,y*C+4,4,4);
+    ctx.fillStyle="#4b3426";ctx.fillRect(x*C+14,y*C+24,5,8);
+  }
+  function houseTile(ctx,x,y,ch){
+    const px=x*C,py=y*C;
+    if(ch==="R"){
+      tile(ctx,x,y,"#a44d3e");ctx.fillStyle="#c9654e";
+      for(let i=-C;i<C*2;i+=8)ctx.fillRect(px+i,py,4,C);
+      ctx.fillStyle="#71372f";ctx.fillRect(px,py+27,C,5);
+    }else{
+      tile(ctx,x,y,"#dfc487");
+      ctx.fillStyle="#7d5938";ctx.fillRect(px+3,py+4,26,4);
+      ctx.fillStyle="#8eaaa0";ctx.fillRect(px+6,py+11,9,9);ctx.fillRect(px+18,py+11,8,9);
+      ctx.fillStyle="#d9eadc";ctx.fillRect(px+8,py+13,5,5);ctx.fillRect(px+20,py+13,5,5);
+      if(ch==="H"){ctx.fillStyle="#6f4b32";ctx.fillRect(px+13,py+21,7,11)}
+    }
+  }
+  function drawHome(ctx){
+    for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){
+      const px=x*C,py=y*C;
+      rect(ctx,px,py,C,C,(x+y)%2?"#c9945f":"#d3a06a");
+      ctx.fillStyle="#a96f49";ctx.fillRect(px,py+29,C,3);
+    }
+    /* walls */
+    rect(ctx,0,0,480,10,"#553b2c");rect(ctx,0,0,10,352,"#553b2c");rect(ctx,470,0,10,352,"#553b2c");
+    rect(ctx,0,342,480,10,"#553b2c");
+    /* rug */
+    rect(ctx,5*C,6*C,5*C,2*C,"#8c5c45");
+    rect(ctx,5*C+5,6*C+5,150-10,54,"#d8b36f");
+    for(let i=0;i<5;i++){rect(ctx,5*C+10+i*27,6*C+10,2,42,"#b58c59")}
+    /* bed */
+    rect(ctx,1*C,2*C,3*C,3*C,"#704b38");
+    rect(ctx,1*C+5,2*C+5,86,54,"#e8d6a8");
+    rect(ctx,1*C+10,2*C+8,76,18,"#b8c8c0");
+    rect(ctx,1*C+10,2*C+28,76,26,"#cfae73");
+    /* bookshelf */
+    rect(ctx,11*C,2*C,2*C,3*C,"#68472f");
+    for(let i=0;i<4;i++)rect(ctx,11*C+5,2*C+7+i*20,54,12,i%2?"#b85b42":"#5d7c54");
+    /* windows */
+    for(const wx of [5,9]){
+      rect(ctx,wx*C,0,2*C,7,"#6b4a34");rect(ctx,wx*C+4,4,56,18,"#7fc0cf");
+      rect(ctx,wx*C+31,4,4,18,"#d9c68e");rect(ctx,wx*C+4,12,56,4,"#d9c68e");
+    }
+    /* starter table */
+    rect(ctx,5*C,2*C,5*C,2*C,"#6f472e");
+    rect(ctx,5*C+5,2*C+5,150,48,"#9b653d");
+    rect(ctx,5*C+13,4*C-3,16,5,"#5d3b28");rect(ctx,9*C-29,4*C-3,16,5,"#5d3b28");
+    for(const x of [6,7,8]){
+      ctx.fillStyle="#e4c87e";ctx.beginPath();ctx.arc(x*C+16,2*C+16,11,0,Math.PI*2);ctx.fill();
+    }
+    /* exit door */
+    rect(ctx,7*C+8,0,48,10,"#8b5a39");rect(ctx,7*C+15,2,34,8,"#b37a4d");
+    pixelText(ctx,"SORTIE",7.5*C,8,7,"#f8e6aa");
+    /* starters */
+    drawStarterSprite(ctx,6*C+16,2*C+16,"Salamèche");
+    drawStarterSprite(ctx,7*C+16,2*C+16,"Néréide");
+    drawStarterSprite(ctx,8*C+16,2*C+16,"Mousselet");
+    /* wall plaque */
+    rect(ctx,11*C+4,6*C+4,56,24,"#7b5a36");rect(ctx,11*C+8,6*C+8,48,16,"#e8d49a");
+    pixelText(ctx,"VALBOIS",12*C,6*C+19,7,"#58452c");
+  }
+  function drawStarterBetter(ctx,x,y,type){
+    ctx.save();ctx.translate(x,y);
+    ctx.fillStyle="rgba(25,30,18,.25)";ctx.fillRect(-10,10,20,3);
+    if(type==="Salamèche"){
+      ctx.fillStyle="#d95d36";ctx.fillRect(-10,-4,20,13);ctx.fillRect(-6,-10,12,8);
+      ctx.fillStyle="#f08b43";ctx.fillRect(-4,-13,8,6);ctx.fillStyle="#f6c36d";ctx.fillRect(-7,0,5,5);
+      ctx.fillStyle="#2b3023";ctx.fillRect(-5,-5,3,3);ctx.fillRect(3,-5,3,3);
+      ctx.fillStyle="#e7a536";ctx.fillRect(9,-10,4,9);
+    }else if(type==="Néréide"){
+      ctx.fillStyle="#438fac";ctx.fillRect(-11,-4,22,14);ctx.fillRect(-7,-10,14,7);
+      ctx.fillStyle="#70bdc8";ctx.fillRect(-5,-14,10,6);ctx.fillStyle="#d7efe7";ctx.fillRect(-7,2,4,4);
+      ctx.fillStyle="#27343a";ctx.fillRect(-5,-5,3,3);ctx.fillRect(3,-5,3,3);
+      ctx.fillStyle="#79c7d0";ctx.fillRect(9,-7,5,9);
+    }else{
+      ctx.fillStyle="#5e9147";ctx.fillRect(-11,-4,22,14);ctx.fillRect(-7,-10,14,7);
+      ctx.fillStyle="#89b95a";ctx.fillRect(-4,-15,8,8);ctx.fillStyle="#dfe3a9";ctx.fillRect(-7,2,5,5);
+      ctx.fillStyle="#273525";ctx.fillRect(-5,-5,3,3);ctx.fillRect(3,-5,3,3);
+      ctx.fillStyle="#4e7e3b";ctx.fillRect(-13,-10,5,7);ctx.fillRect(8,-11,5,8);
+    }
+    ctx.restore();
+  }
+  function playerBetter(ctx){
+    const px=playerPos.x*C,py=playerPos.y*C;
+    ctx.fillStyle="rgba(20,25,18,.32)";ctx.fillRect(px+7,py+27,18,4);
+    ctx.fillStyle="#2d537c";ctx.fillRect(px+9,py+14,14,12);
+    ctx.fillStyle="#e9bd88";ctx.fillRect(px+10,py+6,12,10);
+    ctx.fillStyle="#503727";ctx.fillRect(px+9,py+4,14,5);
+    ctx.fillStyle="#e9d7ad";ctx.fillRect(px+6,py+25,8,5);ctx.fillRect(px+18,py+25,8,5);
+    ctx.fillStyle="#202b24";ctx.fillRect(px+13,py+10,2,2);
+    ctx.fillStyle="#f0d77f";ctx.fillRect(px+8,py+18,3,5);
+  }
+  window.drawStarterSprite=drawStarterBetter;
+  window.renderMap=function(){
+    const canvas=document.getElementById("map");if(!canvas)return;
+    const ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(currentScene==="home"){drawHome(ctx);}
+    else{
+      for(let y=0;y<MAP_H;y++)for(let x=0;x<MAP_W;x++){
+        const ch=mapData[y][x];
+        if(ch==="T")treeTile(ctx,x,y);else if(ch==="G")grassTile(ctx,x,y);else if(ch==="P")pathTile(ctx,x,y);else if(ch==="W")waterTile(ctx,x,y);else if(ch==="H"||ch==="R")houseTile(ctx,x,y,ch);else if(ch==="F"){pathTile(ctx,x,y);ctx.fillStyle="#70492f";ctx.fillRect(x*C+3,y*C+11,26,5);ctx.fillRect(x*C+6,y*C+5,4,20);ctx.fillRect(x*C+22,y*C+5,4,20);}else grassTile(ctx,x,y);
+      }
+    }
+    playerBetter(ctx);
+  };
+  window.buildMap=function(){const c=document.getElementById("map");if(!c)return;c.width=480;c.height=352;renderMap();};
+  /* Make the interaction prompt contextual instead of permanently covering the scene. */
+  window.movePlayer=function(dx,dy){
+    if(!document.getElementById("exploreScreen").classList.contains("active"))return;
+    if(dx<0)facing="left";if(dx>0)facing="right";if(dy<0)facing="up";if(dy>0)facing="down";
+    if(currentScene==="home"&&dx===0&&dy<0&&playerPos.y===1&&playerPos.x===7){
+      if(!starterChosen){document.getElementById("exploreLog").textContent="Choisis d'abord un compagnon sur la table.";return;}
+      currentScene="prairie";mapData=MAPS[1].layout.slice();playerPos={x:7,y:9};
+      document.getElementById("mapHint").textContent="";document.getElementById("exploreLog").textContent="La porte s'ouvre sur les prairies de Valbois.";
+      updateExploreUI();renderMap();return;
+    }
+    const nx=playerPos.x+dx,ny=playerPos.y+dy;
+    if(!isWalkable(nx,ny)){renderMap();return;}
+    playerPos={x:nx,y:ny};renderMap();
+    if(currentScene==="home"){
+      if(Math.abs(playerPos.x-7)<=1&&playerPos.y<=3&&!starterChosen)document.getElementById("mapHint").textContent="Touche un compagnon sur la table.";
+      else if(!starterChosen)document.getElementById("mapHint").textContent="Explore la maison et approche-toi de la table.";
+      else if(playerPos.y<=2)document.getElementById("mapHint").textContent="Passe par la porte au nord.";
+      else document.getElementById("mapHint").textContent="";
+      return;
+    }
+    const terrain=mapData[ny][nx];
+    if(terrain==="G"){
+      document.getElementById("exploreLog").textContent=["Les herbes bruissent doucement.","Un mouvement furtif traverse les hautes herbes.","Le vent fait onduler la prairie."][Math.floor(Math.random()*3)];
+      if(Math.random()<MAPS[1].encounterRate){startWildEncounter();return;}
+    }else document.getElementById("exploreLog").textContent="Tu suis le petit chemin de Valbois.";
+    updateExploreUI();
+  };
+  /* Restart on the actual current DOM after the malformed duplicate block is gone. */
+  currentScene="home";mapData=MAPS[0].layout.slice();playerPos={x:7,y:8};starterChosen=false;buildMap();showExplore();
+})();
+</script>
 </body>
 </html>
