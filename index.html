@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokelikegame</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1b1b1b;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    .game {
+      max-width: 420px;
+      margin: auto;
+      min-height: 100vh;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    .monster {
+      margin: 30px 0;
+      padding: 25px;
+      background: #303030;
+      border-radius: 20px;
+    }
+
+    .monster-icon {
+      font-size: 80px;
+    }
+
+    .hp {
+      height: 18px;
+      background: #555;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .hp-bar {
+      width: 100%;
+      height: 100%;
+      background: #4caf50;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin: 6px 0;
+      border: 0;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .attack-info {
+      display: block;
+      font-size: 13px;
+      font-weight: normal;
+      margin-top: 5px;
+    }
+
+    #message {
+      min-height: 40px;
+      margin: 20px 0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="game">
+
+  <h1>Pokelikegame</h1>
+
+  <div class="monster">
+    <div class="monster-icon">🔥</div>
+    <h2>Salamèche</h2>
+
+    <div class="hp">
+      <div class="hp-bar" id="playerHp"></div>
+    </div>
+
+    <div>PV : <span id="playerHpText">100</span> / 100</div>
+  </div>
+
+  <div class="monster">
+    <div class="monster-icon">💧</div>
+    <h2>Néréide sauvage</h2>
+
+    <div class="hp">
+      <div class="hp-bar" id="enemyHp"></div>
+    </div>
+
+    <div>PV : <span id="enemyHpText">100</span> / 100</div>
+  </div>
+
+  <div id="message">
+    Que doit faire Salamèche ?
+  </div>
+
+  <button onclick="attack('flammèche')">
+    🔥 Flammèche
+    <span class="attack-info">Feu · Spéciale · 100% · ×1,5</span>
+  </button>
+
+  <button onclick="attack('griffe')">
+    ⚔️ Griffe
+    <span class="attack-info">Neutre · Physique · 100% · ×1</span>
+  </button>
+
+  <button onclick="attack('charge')">
+    💥 Charge
+    <span class="attack-info">Neutre · Physique · 95% · ×1</span>
+  </button>
+
+</div>
+
+<script>
+
+let playerHp = 100;
+let enemyHp = 100;
+
+function attack(name) {
+
+  if (enemyHp <= 0 || playerHp <= 0) {
+    return;
+  }
+
+  let damage = 20;
+
+  if (name === "flammèche") {
+    damage = 30;
+  }
+
+  enemyHp = Math.max(0, enemyHp - damage);
+
+  document.getElementById("enemyHpText").textContent = enemyHp;
+  document.getElementById("enemyHp").style.width = enemyHp + "%";
+
+  if (enemyHp <= 0) {
+    document.getElementById("message").textContent =
+      "Victoire ! Néréide est K.O.";
+    return;
+  }
+
+  document.getElementById("message").textContent =
+    "Salamèche utilise " + name + " !";
+
+  setTimeout(enemyAttack, 700);
+}
+
+function enemyAttack() {
+
+  if (enemyHp <= 0) {
+    return;
+  }
+
+  const damage = 15;
+
+  playerHp = Math.max(0, playerHp - damage);
+
+  document.getElementById("playerHpText").textContent = playerHp;
+  document.getElementById("playerHp").style.width = playerHp + "%";
+
+  if (playerHp <= 0) {
+    document.getElementById("message").textContent =
+      "Salamèche est K.O. !";
+  } else {
+    document.getElementById("message").textContent =
+      "Néréide attaque ! À toi de jouer.";
+  }
+}
+
+</script>
+
+</body>
+</html>
