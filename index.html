@@ -1,185 +1,1113 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pokelikegame</title>
-  <style>
-    body {
-      margin: 0;
-      background: #1b1b1b;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pokelikegame — Prototype</title>
 
-    .game {
-      max-width: 420px;
-      margin: auto;
-      min-height: 100vh;
-      padding: 20px;
-      box-sizing: border-box;
-    }
+<style>
+* {
+  box-sizing: border-box;
+}
 
-    h1 {
-      margin-top: 20px;
-    }
+body {
+  margin: 0;
+  background: #151515;
+  color: #fff;
+  font-family: Arial, sans-serif;
+}
 
-    .monster {
-      margin: 30px 0;
-      padding: 25px;
-      background: #303030;
-      border-radius: 20px;
-    }
+#game {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: auto;
+  padding: 12px;
+  background: #202020;
+}
 
-    .monster-icon {
-      font-size: 80px;
-    }
+h1 {
+  text-align: center;
+  font-size: 22px;
+  margin: 5px 0 12px;
+}
 
-    .hp {
-      height: 18px;
-      background: #555;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 15px 0;
-    }
+.arena {
+  background: #292929;
+  border-radius: 18px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
 
-    .hp-bar {
-      width: 100%;
-      height: 100%;
-      background: #4caf50;
-    }
+.monster-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-    button {
-      width: 100%;
-      padding: 15px;
-      margin: 6px 0;
-      border: 0;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+.monster-icon {
+  font-size: 58px;
+  width: 70px;
+  text-align: center;
+}
 
-    .attack-info {
-      display: block;
-      font-size: 13px;
-      font-weight: normal;
-      margin-top: 5px;
-    }
+.monster-info {
+  flex: 1;
+}
 
-    #message {
-      min-height: 40px;
-      margin: 20px 0;
-      font-size: 16px;
-    }
-  </style>
+.monster-name {
+  font-size: 19px;
+  font-weight: bold;
+}
+
+.types {
+  font-size: 13px;
+  opacity: .8;
+  margin: 3px 0 7px;
+}
+
+.hp-bg {
+  width: 100%;
+  height: 14px;
+  background: #555;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.hp {
+  height: 100%;
+  width: 100%;
+  background: #49c95b;
+  transition: width .3s;
+}
+
+.hp-text {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.status {
+  text-align: center;
+  min-height: 42px;
+  padding: 8px;
+  font-size: 15px;
+}
+
+.attacks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.attack {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px;
+  background: #383838;
+  color: white;
+  text-align: left;
+  min-height: 70px;
+  font-size: 14px;
+}
+
+.attack:active {
+  transform: scale(.97);
+}
+
+.attack-name {
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.attack-info {
+  margin-top: 5px;
+  font-size: 11px;
+  opacity: .8;
+}
+
+.attack:disabled {
+  opacity: .35;
+}
+
+.team {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.team button {
+  flex: 1;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 10px;
+  background: #333;
+  color: white;
+  font-size: 12px;
+}
+
+.team button.active {
+  outline: 2px solid white;
+}
+
+.team button:disabled {
+  opacity: .3;
+}
+
+.panel {
+  background: #292929;
+  border-radius: 15px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.panel-title {
+  font-weight: bold;
+  margin-bottom: 7px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.stat {
+  background: #333;
+  padding: 5px;
+  border-radius: 6px;
+}
+
+.reset {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 10px;
+  background: #555;
+  color: white;
+  font-weight: bold;
+}
+</style>
 </head>
 
 <body>
 
-<div class="game">
+<div id="game">
 
-  <h1>Pokelikegame</h1>
+<h1>⚔️ Pokelikegame</h1>
 
-  <div class="monster">
-    <div class="monster-icon">🔥</div>
-    <h2>Salamèche</h2>
+<div class="arena">
 
-    <div class="hp">
-      <div class="hp-bar" id="playerHp"></div>
+  <div class="monster-row">
+
+    <div class="monster-icon" id="enemyIcon">💧</div>
+
+    <div class="monster-info">
+
+      <div class="monster-name" id="enemyName">Néréide</div>
+
+      <div class="types" id="enemyTypes">Eau</div>
+
+      <div class="hp-bg">
+        <div class="hp" id="enemyHpBar"></div>
+      </div>
+
+      <div class="hp-text">
+        PV : <span id="enemyHpText">100</span> / <span id="enemyMaxHp">100</span>
+      </div>
+
     </div>
 
-    <div>PV : <span id="playerHpText">100</span> / 100</div>
   </div>
-
-  <div class="monster">
-    <div class="monster-icon">💧</div>
-    <h2>Néréide sauvage</h2>
-
-    <div class="hp">
-      <div class="hp-bar" id="enemyHp"></div>
-    </div>
-
-    <div>PV : <span id="enemyHpText">100</span> / 100</div>
-  </div>
-
-  <div id="message">
-    Que doit faire Salamèche ?
-  </div>
-
-  <button onclick="attack('flammèche')">
-    🔥 Flammèche
-    <span class="attack-info">Feu · Spéciale · 100% · ×1,5</span>
-  </button>
-
-  <button onclick="attack('griffe')">
-    ⚔️ Griffe
-    <span class="attack-info">Neutre · Physique · 100% · ×1</span>
-  </button>
-
-  <button onclick="attack('charge')">
-    💥 Charge
-    <span class="attack-info">Neutre · Physique · 95% · ×1</span>
-  </button>
 
 </div>
 
+
+<div class="status" id="message">
+  À toi de jouer.
+</div>
+
+
+<div class="arena">
+
+  <div class="monster-row">
+
+    <div class="monster-icon" id="playerIcon">🔥</div>
+
+    <div class="monster-info">
+
+      <div class="monster-name" id="playerName">Salamèche</div>
+
+      <div class="types" id="playerTypes">Feu</div>
+
+      <div class="hp-bg">
+        <div class="hp" id="playerHpBar"></div>
+      </div>
+
+      <div class="hp-text">
+        PV : <span id="playerHpText">100</span> / <span id="playerMaxHp">100</span>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="panel">
+
+  <div class="panel-title">Ton équipe</div>
+
+  <div class="team" id="teamButtons"></div>
+
+</div>
+
+
+<div class="panel">
+
+  <div class="panel-title">Attaques</div>
+
+  <div class="attacks" id="attacks"></div>
+
+</div>
+
+
+<div class="panel">
+
+  <div class="panel-title">Statistiques</div>
+
+  <div class="stats" id="stats"></div>
+
+  <div style="font-size:12px;margin-top:7px;">
+    Talent : <b id="talent">—</b>
+  </div>
+
+</div>
+
+
+<button class="reset" onclick="newBattle()">
+  🔄 Nouveau combat
+</button>
+
+</div>
+
+
 <script>
 
-let playerHp = 100;
-let enemyHp = 100;
+const TYPES = {
+  "Neutre": {},
+  "Feu": {
+    "Plante": 1.5,
+    "Glace": 1.5,
+    "Eau": 0.7,
+    "Roche": 0.7
+  },
+  "Eau": {
+    "Feu": 1.5,
+    "Roche": 1.5,
+    "Plante": 0.7,
+    "Électrique": 0.7
+  },
+  "Plante": {
+    "Eau": 1.5,
+    "Roche": 1.5,
+    "Feu": 0.7,
+    "Glace": 0.7
+  },
+  "Électrique": {
+    "Eau": 1.5,
+    "Air": 1.5,
+    "Roche": 0.7
+  },
+  "Roche": {
+    "Feu": 1.5,
+    "Glace": 1.5,
+    "Air": 1.5,
+    "Eau": 0.7,
+    "Plante": 0.7
+  },
+  "Air": {
+    "Plante": 1.5,
+    "Électrique": 0.7,
+    "Roche": 0.7
+  },
+  "Glace": {
+    "Plante": 1.5,
+    "Dragon": 1.5,
+    "Feu": 0.7
+  },
+  "Dragon": {
+    "Dragon": 1.5,
+    "Glace": 0.7
+  },
+  "Ténèbres": {
+    "Psy": 1.5
+  },
+  "Psy": {
+    "Ténèbres": 0.7
+  },
+  "Poison": {
+    "Plante": 1.5,
+    "Roche": 0.7
+  }
+};
 
-function attack(name) {
 
-  if (enemyHp <= 0 || playerHp <= 0) {
-    return;
+const SPECIES = [
+
+  {
+    name: "Murin",
+    icon: "🐭",
+    types: ["Neutre"],
+    stats: {
+      vitalite:[45,105],
+      force:[35,105],
+      puissance:[30,100],
+      resistance:[35,100],
+      vitesse:[40,110]
+    },
+    talent: "Instinct",
+    attacks: [
+      ["Griffe","Neutre","Physique",40,100],
+      ["Charge","Neutre","Physique",45,95],
+      ["Vive-attaque","Neutre","Physique",35,100],
+      ["Ruse","Ténèbres","Physique",45,100]
+    ]
+  },
+
+  {
+    name: "Salamèche",
+    icon: "🔥",
+    types: ["Feu"],
+    stats: {
+      vitalite:[35,75],
+      force:[55,110],
+      puissance:[45,105],
+      resistance:[30,65],
+      vitesse:[70,125]
+    },
+    talent: "Brasier",
+    attacks: [
+      ["Flammèche","Feu","Spéciale",40,100],
+      ["Griffe","Neutre","Physique",40,100],
+      ["Braises","Feu","Spéciale",55,95],
+      ["Crocs brûlants","Feu","Physique",60,95],
+      ["Déflagration","Feu","Spéciale",90,85]
+    ]
+  },
+
+  {
+    name: "Néréide",
+    icon: "💧",
+    types: ["Eau"],
+    stats: {
+      vitalite:[55,100],
+      force:[40,90],
+      puissance:[45,105],
+      resistance:[50,100],
+      vitesse:[40,90]
+    },
+    talent: "Torrent",
+    attacks: [
+      ["Éclaboussure","Eau","Spéciale",35,100],
+      ["Charge aqueuse","Eau","Physique",45,100],
+      ["Jet d'eau","Eau","Spéciale",55,100],
+      ["Vague","Eau","Spéciale",70,95],
+      ["Raz-de-marée","Eau","Spéciale",95,80]
+    ]
+  },
+
+  {
+    name: "Mousselet",
+    icon: "🌿",
+    types: ["Plante"],
+    stats: {
+      vitalite:[70,125],
+      force:[35,85],
+      puissance:[35,90],
+      resistance:[65,120],
+      vitesse:[25,70]
+    },
+    talent: "Régénération",
+    attacks: [
+      ["Fouet-vigne","Plante","Physique",45,100],
+      ["Épine","Plante","Physique",40,100],
+      ["Spore","Plante","Statut",0,90],
+      ["Sève","Plante","Spéciale",55,100],
+      ["Drainage","Plante","Spéciale",60,100]
+    ]
+  },
+
+  {
+    name: "Fulgur",
+    icon: "⚡",
+    types: ["Électrique"],
+    stats: {
+      vitalite:[30,60],
+      force:[35,80],
+      puissance:[40,105],
+      resistance:[30,65],
+      vitesse:[90,150]
+    },
+    talent: "Paratonnerre",
+    attacks: [
+      ["Étincelle","Électrique","Physique",40,100],
+      ["Éclair","Électrique","Spéciale",50,100],
+      ["Arc électrique","Électrique","Spéciale",65,95],
+      ["Surcharge","Électrique","Spéciale",80,90],
+      ["Tonnerre","Électrique","Spéciale",95,85]
+    ]
+  },
+
+  {
+    name: "Rocorne",
+    icon: "🪨",
+    types: ["Roche"],
+    stats: {
+      vitalite:[80,140],
+      force:[65,130],
+      puissance:[20,55],
+      resistance:[80,135],
+      vitesse:[15,55]
+    },
+    talent: "Carapace",
+    attacks: [
+      ["Écrasement","Roche","Physique",45,100],
+      ["Jet de pierre","Roche","Physique",50,95],
+      ["Coup de roc","Roche","Physique",65,90],
+      ["Mur de pierre","Roche","Statut",0,100],
+      ["Séisme","Roche","Physique",90,85]
+    ]
+  },
+
+  {
+    name: "Noxelin",
+    icon: "🌑",
+    types: ["Ténèbres"],
+    stats: {
+      vitalite:[40,85],
+      force:[45,105],
+      puissance:[45,105],
+      resistance:[35,80],
+      vitesse:[55,115]
+    },
+    talent: "Traqueur",
+    attacks: [
+      ["Morsure","Ténèbres","Physique",45,100],
+      ["Feinte","Ténèbres","Physique",50,100],
+      ["Ruse","Ténèbres","Physique",55,95],
+      ["Provocation","Ténèbres","Statut",0,100],
+      ["Ombre","Ténèbres","Spéciale",75,90]
+    ]
+  },
+
+  {
+    name: "Aéroptère",
+    icon: "🪽",
+    types: ["Air"],
+    stats: {
+      vitalite:[30,70],
+      force:[40,95],
+      puissance:[35,85],
+      resistance:[35,75],
+      vitesse:[65,125]
+    },
+    talent: "Agilité",
+    attacks: [
+      ["Picore","Air","Physique",40,100],
+      ["Rafale","Air","Spéciale",45,100],
+      ["Serre","Air","Physique",55,95],
+      ["Plongeon","Air","Physique",70,90],
+      ["Ouragan","Air","Spéciale",95,80]
+    ]
+  },
+
+  {
+    name: "Venimite",
+    icon: "☠️",
+    types: ["Poison"],
+    stats: {
+      vitalite:[45,95],
+      force:[35,85],
+      puissance:[40,95],
+      resistance:[50,105],
+      vitesse:[35,90]
+    },
+    talent: "Toxique",
+    attacks: [
+      ["Dard","Poison","Physique",40,100],
+      ["Poison","Poison","Statut",0,90],
+      ["Morsure venimeuse","Poison","Physique",55,95],
+      ["Acide","Poison","Spéciale",60,95],
+      ["Nuage toxique","Poison","Spéciale",80,85]
+    ]
+  },
+
+  {
+    name: "Cryolynx",
+    icon: "❄️",
+    types: ["Glace"],
+    stats: {
+      vitalite:[35,75],
+      force:[35,80],
+      puissance:[70,130],
+      resistance:[35,80],
+      vitesse:[45,100]
+    },
+    talent: "Givre",
+    attacks: [
+      ["Poudreuse","Glace","Spéciale",40,100],
+      ["Éclat glacé","Glace","Physique",45,100],
+      ["Souffle froid","Glace","Spéciale",55,100],
+      ["Cristallisation","Glace","Statut",0,100],
+      ["Blizzard","Glace","Spéciale",95,80]
+    ]
+  },
+
+  {
+    name: "Dracorne",
+    icon: "🐉",
+    types: ["Dragon"],
+    stats: {
+      vitalite:[50,125],
+      force:[40,135],
+      puissance:[40,135],
+      resistance:[40,120],
+      vitesse:[35,125]
+    },
+    talent: "Écailles",
+    attacks: [
+      ["Souffle draconique","Dragon","Spéciale",50,100],
+      ["Charge draconique","Dragon","Physique",55,95],
+      ["Hurlement","Neutre","Statut",0,100],
+      ["Rage draconique","Dragon","Physique",70,90],
+      ["Météore","Dragon","Spéciale",100,80]
+    ]
+  },
+
+  {
+    name: "Mimélite",
+    icon: "🔮",
+    types: ["Psy"],
+    stats: {
+      vitalite:[40,85],
+      force:[20,60],
+      puissance:[50,110],
+      resistance:[55,110],
+      vitesse:[45,100]
+    },
+    talent: "Esprit clair",
+    attacks: [
+      ["Choc mental","Psy","Spéciale",45,100],
+      ["Regard","Psy","Statut",0,100],
+      ["Confusion","Psy","Spéciale",50,100],
+      ["Miroir","Psy","Statut",0,90],
+      ["Télékinésie","Psy","Spéciale",70,90]
+    ]
   }
 
-  let damage = 20;
+];
 
-  if (name === "flammèche") {
-    damage = 30;
-  }
 
-  enemyHp = Math.max(0, enemyHp - damage);
+let playerTeam = [];
+let enemy = null;
+let activeIndex = 0;
+let battleOver = false;
 
-  document.getElementById("enemyHpText").textContent = enemyHp;
-  document.getElementById("enemyHp").style.width = enemyHp + "%";
 
-  if (enemyHp <= 0) {
+function randomInt(min,max) {
+  return Math.floor(Math.random() * (max-min+1)) + min;
+}
+
+
+function generateMonster(species) {
+
+  const s = species.stats;
+
+  const monster = {
+    name: species.name,
+    icon: species.icon,
+    types: [...species.types],
+
+    vitalite: randomInt(s.vitalite[0],s.vitalite[1]),
+    force: randomInt(s.force[0],s.force[1]),
+    puissance: randomInt(s.puissance[0],s.puissance[1]),
+    resistance: randomInt(s.resistance[0],s.resistance[1]),
+    vitesse: randomInt(s.vitesse[0],s.vitesse[1]),
+
+    talent: species.talent,
+
+    attacks: species.attacks
+      .slice()
+      .sort(() => Math.random() - .5)
+      .slice(0,4)
+      .map(a => ({
+        name:a[0],
+        type:a[1],
+        category:a[2],
+        power:a[3],
+        accuracy:a[4]
+      }))
+  };
+
+  monster.maxHp = monster.vitalite;
+  monster.hp = monster.maxHp;
+
+  return monster;
+}
+
+
+function effectiveness(attackType, defenderTypes) {
+
+  let multiplier = 1;
+
+  defenderTypes.forEach(type => {
+
+    if (TYPES[attackType] && TYPES[attackType][type]) {
+      multiplier *= TYPES[attackType][type];
+    }
+
+  });
+
+  return multiplier;
+}
+
+
+function formatMultiplier(value) {
+
+  if (value === 1.5) return "×1,5";
+  if (value === 0.7) return "×0,7";
+  if (value === 2.25) return "×2,25";
+  if (value === 0.49) return "×0,49";
+
+  return "×" + value;
+}
+
+
+function iconForCategory(category) {
+
+  if (category === "Physique") return "⚔️";
+  if (category === "Spéciale") return "✨";
+  return "🌀";
+
+}
+
+
+function render() {
+
+  const player = playerTeam[activeIndex];
+
+  document.getElementById("playerIcon").textContent = player.icon;
+  document.getElementById("playerName").textContent = player.name;
+  document.getElementById("playerTypes").textContent = player.types.join(" / ");
+
+  document.getElementById("enemyIcon").textContent = enemy.icon;
+  document.getElementById("enemyName").textContent = enemy.name;
+  document.getElementById("enemyTypes").textContent = enemy.types.join(" / ");
+
+  updateHp("player",player);
+  updateHp("enemy",enemy);
+
+  renderTeam();
+  renderAttacks();
+  renderStats();
+
+}
+
+
+function updateHp(side,monster) {
+
+  const percent = Math.max(0,(monster.hp / monster.maxHp) * 100);
+
+  document.getElementById(side + "HpBar").style.width = percent + "%";
+  document.getElementById(side + "HpText").textContent = monster.hp;
+  document.getElementById(side + "MaxHp").textContent = monster.maxHp;
+
+}
+
+
+function renderTeam() {
+
+  const container = document.getElementById("teamButtons");
+
+  container.innerHTML = "";
+
+  playerTeam.forEach((monster,index) => {
+
+    const button = document.createElement("button");
+
+    button.textContent =
+      monster.icon + " " +
+      monster.name +
+      " (" + monster.hp + "/" + monster.maxHp + ")";
+
+    if (index === activeIndex) {
+      button.classList.add("active");
+    }
+
+    if (monster.hp <= 0) {
+      button.disabled = true;
+    }
+
+    button.onclick = () => switchMonster(index);
+
+    container.appendChild(button);
+
+  });
+
+}
+
+
+function renderAttacks() {
+
+  const container = document.getElementById("attacks");
+
+  container.innerHTML = "";
+
+  const player = playerTeam[activeIndex];
+
+  player.attacks.forEach(attack => {
+
+    const button = document.createElement("button");
+
+    button.className = "attack";
+
+    const multiplier =
+      effectiveness(attack.type,enemy.types);
+
+    button.innerHTML = `
+      <div class="attack-name">
+        ${iconForCategory(attack.category)} ${attack.name}
+      </div>
+
+      <div class="attack-info">
+        ${attack.type} · ${attack.category} ·
+        ${attack.accuracy}% ·
+        ${formatMultiplier(multiplier)}
+      </div>
+    `;
+
+    button.disabled =
+      battleOver ||
+      player.hp <= 0 ||
+      enemy.hp <= 0;
+
+    button.onclick = () => useAttack(attack);
+
+    container.appendChild(button);
+
+  });
+
+}
+
+
+function renderStats() {
+
+  const player = playerTeam[activeIndex];
+
+  document.getElementById("stats").innerHTML = `
+
+    <div class="stat">❤️ Vitalité : ${player.vitalite}</div>
+    <div class="stat">⚔️ Force : ${player.force}</div>
+    <div class="stat">✨ Puissance : ${player.puissance}</div>
+    <div class="stat">🛡️ Résistance : ${player.resistance}</div>
+    <div class="stat">💨 Vitesse : ${player.vitesse}</div>
+
+  `;
+
+  document.getElementById("talent").textContent =
+    player.talent;
+
+}
+
+
+function useAttack(attack) {
+
+  if (battleOver) return;
+
+  const player = playerTeam[activeIndex];
+
+  if (player.hp <= 0 || enemy.hp <= 0) return;
+
+  let hit =
+    Math.random() * 100 <= attack.accuracy;
+
+  if (!hit) {
+
     document.getElementById("message").textContent =
-      "Victoire ! Néréide est K.O.";
+      player.name + " utilise " +
+      attack.name +
+      " mais rate !";
+
+    setTimeout(enemyTurn,700);
+
     return;
   }
+
+
+  if (attack.category === "Statut") {
+
+    document.getElementById("message").textContent =
+      player.name + " utilise " +
+      attack.name + " !";
+
+    setTimeout(enemyTurn,700);
+
+    return;
+  }
+
+
+  let attackStat =
+    attack.category === "Physique"
+    ? player.force
+    : player.puissance;
+
+
+  let defense =
+    enemy.resistance;
+
+
+  const multiplier =
+    effectiveness(attack.type,enemy.types);
+
+
+  let damage =
+    Math.max(
+      1,
+      Math.round(
+        (attack.power * attackStat / Math.max(20,defense))
+        * 0.35
+        * multiplier
+      )
+    );
+
+
+  let critical =
+    Math.random() < 0.08;
+
+
+  if (critical) {
+    damage = Math.round(damage * 1.5);
+  }
+
+
+  enemy.hp =
+    Math.max(0,enemy.hp - damage);
+
+
+  let text =
+    player.name +
+    " utilise " +
+    attack.name +
+    " : -" +
+    damage +
+    " PV";
+
+
+  if (critical) {
+    text += " ✨ CRITIQUE !";
+  }
+
 
   document.getElementById("message").textContent =
-    "Salamèche utilise " + name + " !";
+    text;
 
-  setTimeout(enemyAttack, 700);
-}
 
-function enemyAttack() {
+  render();
 
-  if (enemyHp <= 0) {
+
+  if (enemy.hp <= 0) {
+
+    battleOver = true;
+
+    document.getElementById("message").textContent =
+      "🏆 Victoire ! " +
+      enemy.name +
+      " est K.O.";
+
+    renderAttacks();
+
     return;
   }
 
-  const damage = 15;
 
-  playerHp = Math.max(0, playerHp - damage);
+  setTimeout(enemyTurn,700);
 
-  document.getElementById("playerHpText").textContent = playerHp;
-  document.getElementById("playerHp").style.width = playerHp + "%";
-
-  if (playerHp <= 0) {
-    document.getElementById("message").textContent =
-      "Salamèche est K.O. !";
-  } else {
-    document.getElementById("message").textContent =
-      "Néréide attaque ! À toi de jouer.";
-  }
 }
+
+
+function enemyTurn() {
+
+  if (battleOver || enemy.hp <= 0) return;
+
+  const player = playerTeam[activeIndex];
+
+  const attacks = SPECIES
+    .find(s => s.name === enemy.name)
+    .attacks;
+
+  const raw =
+    attacks[Math.floor(Math.random() * attacks.length)];
+
+
+  const attack = {
+    name:raw[0],
+    type:raw[1],
+    category:raw[2],
+    power:raw[3],
+    accuracy:raw[4]
+  };
+
+
+  if (Math.random() * 100 > attack.accuracy) {
+
+    document.getElementById("message").textContent =
+      enemy.name +
+      " utilise " +
+      attack.name +
+      " mais rate !";
+
+    return;
+  }
+
+
+  if (attack.category === "Statut") {
+
+    document.getElementById("message").textContent =
+      enemy.name +
+      " utilise " +
+      attack.name +
+      " !";
+
+    return;
+  }
+
+
+  const attackStat =
+    attack.category === "Physique"
+    ? enemy.force
+    : enemy.puissance;
+
+
+  const multiplier =
+    effectiveness(attack.type,player.types);
+
+
+  let damage =
+    Math.max(
+      1,
+      Math.round(
+        (attack.power * attackStat /
+        Math.max(20,player.resistance))
+        * 0.35
+        * multiplier
+      )
+    );
+
+
+  player.hp =
+    Math.max(0,player.hp - damage);
+
+
+  document.getElementById("message").textContent =
+    enemy.name +
+    " utilise " +
+    attack.name +
+    " : -" +
+    damage +
+    " PV";
+
+
+  render();
+
+
+  if (player.hp <= 0) {
+
+    const alive =
+      playerTeam.some(m => m.hp > 0);
+
+    if (alive) {
+
+      document.getElementById("message").textContent =
+        player.name +
+        " est K.O. ! Choisis un autre monstre.";
+
+    } else {
+
+      battleOver = true;
+
+      document.getElementById("message").textContent =
+        "💀 Toute ton équipe est K.O.";
+
+    }
+
+  }
+
+}
+
+
+function switchMonster(index) {
+
+  if (battleOver) return;
+
+  if (index === activeIndex) return;
+
+  if (playerTeam[index].hp <= 0) return;
+
+  activeIndex = index;
+
+  document.getElementById("message").textContent =
+    "Tu envoies " +
+    playerTeam[index].name +
+    " !";
+
+  render();
+
+}
+
+
+function newBattle() {
+
+  battleOver = false;
+
+  activeIndex = 0;
+
+  playerTeam = [];
+
+  while (playerTeam.length < 3) {
+
+    const species =
+      SPECIES[
+        Math.floor(Math.random() * SPECIES.length)
+      ];
+
+    playerTeam.push(generateMonster(species));
+
+  }
+
+
+  const enemySpecies =
+    SPECIES[
+      Math.floor(Math.random() * SPECIES.length)
+    ];
+
+
+  enemy =
+    generateMonster(enemySpecies);
+
+
+  document.getElementById("message").textContent =
+    "À toi de jouer.";
+
+
+  render();
+
+}
+
+
+newBattle();
 
 </script>
 
