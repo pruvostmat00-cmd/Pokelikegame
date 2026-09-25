@@ -238,6 +238,129 @@ h1 {
   color: white;
   font-weight: bold;
 }
+
+/* --- Exploration type RPG rétro --- */
+#exploreScreen { padding-bottom: 18px; }
+#exploreScreen h1 { margin-bottom: 8px; }
+.map-wrap {
+  background:#20351f;
+  border:4px solid #151d16;
+  border-radius:12px;
+  padding:5px;
+  box-shadow: inset 0 0 0 2px #50634a;
+}
+.map {
+  display:grid;
+  grid-template-columns:repeat(15,1fr);
+  grid-template-rows:repeat(11,1fr);
+  aspect-ratio:15/11;
+  overflow:hidden;
+  border-radius:6px;
+  background:#78a94d;
+  image-rendering:pixelated;
+}
+.tile {
+  position:relative;
+  min-width:0;
+  min-height:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:clamp(14px,4.5vw,24px);
+  user-select:none;
+}
+.tile.grass {
+  background:
+    linear-gradient(135deg,rgba(255,255,255,.08) 25%,transparent 25%),
+    linear-gradient(45deg,rgba(30,90,35,.18) 25%,transparent 25%);
+  background-size:8px 8px;
+  background-color:#72aa4a;
+}
+.tile.path {
+  background:#c9a76a;
+  box-shadow:inset 0 0 0 1px rgba(100,75,35,.12);
+}
+.tile.water {
+  background:repeating-linear-gradient(0deg,#5a9cc1 0 5px,#69afd0 5px 8px);
+}
+.tile.tree {
+  background:#4d813c;
+  color:#18351c;
+}
+.tile.wall {
+  background:#66705c;
+}
+.tile.rock {
+  background:#8d8069;
+}
+.tile.flower { background-color:#72aa4a; }
+.player {
+  z-index:4;
+  font-size:clamp(20px,6vw,30px);
+  filter:drop-shadow(0 2px 0 rgba(0,0,0,.45));
+  animation:stepBob .22s ease-out;
+}
+@keyframes stepBob { 50% { transform:translateY(-2px); } }
+.map-hud {
+  display:flex;
+  justify-content:space-between;
+  gap:6px;
+  margin:8px 0 0;
+  font-size:12px;
+}
+.map-hud span {
+  background:#293529;
+  border-radius:8px;
+  padding:7px 9px;
+  flex:1;
+  text-align:center;
+}
+.map-log {
+  margin-top:8px;
+  background:#162016;
+  border:2px solid #3e533a;
+  border-radius:9px;
+  padding:9px;
+  min-height:42px;
+  font-size:12px;
+  line-height:1.35;
+}
+.dpad {
+  width:150px;
+  margin:10px auto 0;
+  display:grid;
+  grid-template-columns:repeat(3,50px);
+  grid-template-rows:repeat(2,50px);
+}
+.dpad button {
+  border:2px solid #202820;
+  background:#394739;
+  color:#fff;
+  font-size:21px;
+  font-weight:bold;
+  touch-action:manipulation;
+}
+.dpad button:active { background:#596b55; transform:scale(.96); }
+.dpad .up { grid-column:2; grid-row:1; border-radius:10px 10px 4px 4px; }
+.dpad .left { grid-column:1; grid-row:2; border-radius:10px 4px 4px 10px; }
+.dpad .down { grid-column:2; grid-row:2; border-radius:4px 4px 10px 10px; }
+.dpad .right { grid-column:3; grid-row:2; border-radius:4px 10px 10px 4px; }
+.explore-team {
+  background:#292929;
+  border-radius:12px;
+  padding:10px;
+  margin-top:10px;
+}
+.explore-team-row {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 0;
+  border-bottom:1px solid #3a3a3a;
+  font-size:12px;
+}
+.explore-team-row:last-child { border-bottom:0; }
+
 </style>
 </head>
 
@@ -248,22 +371,23 @@ h1 {
 <h1>🐾 Pokelikegame</h1>
 
 <div id="exploreScreen" class="screen active">
-  <div class="explore-card">
-    <div class="area-title" id="areaTitle">🌲 Bois de Brume</div>
-    <div class="area-desc" id="areaDesc">Une zone boisée proche du refuge. Des créatures sauvages peuvent apparaître dans les hautes herbes.</div>
-    <div class="resources">
-      <div class="resource">👣 Pas<br><b id="steps">0</b></div>
-      <div class="resource">⭐ XP<br><b id="xp">0</b></div>
-      <div class="resource">🪙 Éclats<br><b id="coins">0</b></div>
-    </div>
-    <button class="explore-button primary" onclick="exploreStep()">🌿 Explorer la zone</button>
-    <button class="explore-button" onclick="changeArea()">🗺️ Changer de zone</button>
+  <h1>🌿 Exploration</h1>
+  <div class="map-wrap">
+    <div class="map" id="map"></div>
   </div>
-  <div class="explore-card">
-    <div class="panel-title">Journal</div>
-    <div class="log" id="exploreLog">Tu arrives dans le Bois de Brume. Commence ton exploration.</div>
+  <div class="map-hud">
+    <span>📍 <b id="areaTitle">Route 1</b></span>
+    <span>👣 Pas : <b id="steps">0</b></span>
+    <span>🪙 <b id="coins">0</b></span>
   </div>
-  <div class="explore-card">
+  <div class="map-log" id="exploreLog">Déplace-toi dans la zone. Les hautes herbes peuvent cacher des créatures sauvages.</div>
+  <div class="dpad" aria-label="Contrôles de déplacement">
+    <button class="up" type="button" onclick="movePlayer(0,-1)">▲</button>
+    <button class="left" type="button" onclick="movePlayer(-1,0)">◀</button>
+    <button class="down" type="button" onclick="movePlayer(0,1)">▼</button>
+    <button class="right" type="button" onclick="movePlayer(1,0)">▶</button>
+  </div>
+  <div class="explore-team">
     <div class="panel-title">Équipe</div>
     <div id="exploreTeam"></div>
   </div>
@@ -1292,8 +1416,213 @@ function newBattle() {
 }
 
 
+/* =========================
+   EXPLORATION LIBRE RÉTRO
+   ========================= */
+const MAP_W = 15;
+const MAP_H = 11;
+let mapData = [];
+let playerPos = {x:7,y:5};
+let facing = "down";
+
+const MAPS = [
+  {
+    name:"Route 1",
+    encounterRate:.18,
+    layout:[
+      "TTTTTTTTTTTTTTT",
+      "TGGGGGGGGGGGGGT",
+      "TGGGPPPPPGGGGGT",
+      "TGGGPGGGPGGGGGT",
+      "TGGGPGGGPGGGGGT",
+      "TGGGPPPPPPGGGGT",
+      "TGGGGGGGGGGGGGT",
+      "TGGGGGWWWWGGGGT",
+      "TGGGGGWWWWGGGGT",
+      "TGGGGGGGGGGGGGT",
+      "TTTTTTTTTTTTTTT"
+    ]
+  },
+  {
+    name:"Bois de Brume",
+    encounterRate:.22,
+    layout:[
+      "TTTTTTTTTTTTTTT",
+      "TGGGTGGGGGTGGGGT",
+      "TGGTGGGGGGGGTGGT",
+      "TGGGGPPPPPGGGGGT",
+      "TGGGGPGGGPGGGGGT",
+      "TGGGGPPPPPPGGGGT",
+      "TGGGTGGGGGGGTGGGT",
+      "TGGGGGGGGTGGGGGT",
+      "TGGGGTGGGGGGGTGT",
+      "TGGGGGGGGGGGGGGT",
+      "TTTTTTTTTTTTTTT"
+    ]
+  }
+];
+
+function tileInfo(ch){
+  if(ch==="T") return {cls:"tree",icon:"🌳",walk:false};
+  if(ch==="P") return {cls:"path",icon:"",walk:true};
+  if(ch==="W") return {cls:"water",icon:"",walk:false};
+  return {cls:"grass",icon:"",walk:true};
+}
+
+function buildMap(){
+  const map = document.getElementById("map");
+  map.innerHTML = "";
+  const data = mapData;
+  for(let y=0;y<MAP_H;y++){
+    for(let x=0;x<MAP_W;x++){
+      const ch = data[y][x];
+      const info = tileInfo(ch);
+      const tile = document.createElement("div");
+      tile.className = "tile " + info.cls;
+      tile.dataset.x = x;
+      tile.dataset.y = y;
+      if(info.icon) tile.textContent = info.icon;
+      map.appendChild(tile);
+    }
+  }
+  renderMap();
+}
+
+function renderMap(){
+  document.querySelectorAll("#map .tile").forEach(tile=>{
+    const x = Number(tile.dataset.x);
+    const y = Number(tile.dataset.y);
+    tile.classList.remove("player");
+    if(x===playerPos.x && y===playerPos.y){
+      tile.textContent = facing==="left" ? "🧑‍🦱" : facing==="right" ? "🧑‍🦰" : "🧍";
+      tile.classList.add("player");
+    } else {
+      const info = tileInfo(mapData[y][x]);
+      tile.textContent = info.icon;
+    }
+  });
+}
+
+function isWalkable(x,y){
+  if(x<0 || y<0 || x>=MAP_W || y>=MAP_H) return false;
+  return tileInfo(mapData[y][x]).walk;
+}
+
+function movePlayer(dx,dy){
+  if(document.getElementById("exploreScreen").classList.contains("active")===false) return;
+  if(dx<0) facing="left";
+  if(dx>0) facing="right";
+  if(dy<0) facing="up";
+  if(dy>0) facing="down";
+
+  const nx = playerPos.x + dx;
+  const ny = playerPos.y + dy;
+  if(!isWalkable(nx,ny)){
+    document.getElementById("exploreLog").textContent = "Tu ne peux pas passer par là.";
+    renderMap();
+    return;
+  }
+
+  playerPos = {x:nx,y:ny};
+  steps++;
+  renderMap();
+  updateExploreUI();
+
+  const terrain = mapData[ny][nx];
+  if(terrain==="G"){
+    const messages = [
+      "Les hautes herbes bruissent autour de toi...",
+      "Tu avances dans les hautes herbes.",
+      "Quelque chose semble bouger non loin..."
+    ];
+    document.getElementById("exploreLog").textContent =
+      messages[Math.floor(Math.random()*messages.length)];
+
+    if(Math.random() < MAPS[areaIndex].encounterRate){
+      startWildEncounter();
+      return;
+    }
+  } else {
+    document.getElementById("exploreLog").textContent =
+      "Tu suis le chemin tranquillement.";
+  }
+
+  if(Math.random()<.025){
+    coins += randomInt(1,3);
+    document.getElementById("exploreLog").textContent += " Tu trouves quelques éclats au sol.";
+    updateExploreUI();
+  }
+}
+
+function startWildEncounter(){
+  const species = SPECIES[Math.floor(Math.random()*SPECIES.length)];
+  enemy = generateMonster(species);
+  battleOver = false;
+  const alive = playerTeam.findIndex(m=>m.hp>0);
+  if(alive>=0) activeIndex=alive;
+  else {
+    playerTeam.forEach(m=>m.hp=m.maxHp);
+    activeIndex=0;
+  }
+  showCombat();
+  document.getElementById("message").textContent =
+    "⚠️ Une créature sauvage surgit des hautes herbes : " + enemy.name + " !";
+  render();
+}
+
+function showExplore(logText){
+  document.getElementById("combatScreen").classList.remove("active");
+  document.getElementById("exploreScreen").classList.add("active");
+  if(logText) document.getElementById("exploreLog").textContent = logText;
+  updateExploreUI();
+  renderMap();
+}
+
+function showCombat(){
+  document.getElementById("exploreScreen").classList.remove("active");
+  document.getElementById("combatScreen").classList.add("active");
+}
+
+function updateExploreUI(){
+  document.getElementById("areaTitle").textContent = MAPS[areaIndex].name;
+  document.getElementById("steps").textContent = steps;
+  document.getElementById("coins").textContent = coins;
+  document.getElementById("exploreTeam").innerHTML = playerTeam.map((m,i)=>
+    '<div class="explore-team-row"><span>' + m.icon + ' <b>' + m.name + '</b></span><span>' +
+    m.hp + '/' + m.maxHp + ' PV' + (i===activeIndex ? ' · actif' : '') + '</span></div>'
+  ).join("");
+}
+
+function changeArea(){
+  areaIndex = (areaIndex + 1) % MAPS.length;
+  mapData = MAPS[areaIndex].layout.slice();
+  playerPos = {x:7,y:5};
+  document.getElementById("exploreLog").textContent =
+    "Tu arrives dans " + MAPS[areaIndex].name + ".";
+  buildMap();
+  updateExploreUI();
+}
+
+document.addEventListener("keydown", e=>{
+  if(!document.getElementById("exploreScreen").classList.contains("active")) return;
+  const keys = {
+    ArrowUp:[0,-1], w:[0,-1], z:[0,-1],
+    ArrowDown:[0,1], s:[0,1],
+    ArrowLeft:[-1,0], a:[-1,0], q:[-1,0],
+    ArrowRight:[1,0], d:[1,0]
+  };
+  const move = keys[e.key];
+  if(move){
+    e.preventDefault();
+    movePlayer(move[0],move[1]);
+  }
+});
+
+
 newBattle();
-showExplore("Tu arrives au refuge. Ton équipe est prête à partir.");
+mapData = MAPS[areaIndex].layout.slice();
+buildMap();
+showExplore("Tu arrives au début de la route. Déplace-toi avec les flèches et traverse les hautes herbes pour rencontrer des créatures.");
 
 </script>
 
