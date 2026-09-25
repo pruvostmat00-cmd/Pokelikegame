@@ -1772,14 +1772,20 @@ function isWalkable(x,y){
 }
 
 function movePlayer(dx,dy){
-  if(document.getElementById("exploreScreen").classList.contains("active")===false) return;
+  if(!document.getElementById("exploreScreen").classList.contains("active")) return;
   if(dx<0) facing="left";
   if(dx>0) facing="right";
   if(dy<0) facing="up";
   if(dy>0) facing="down";
-
   const nx = playerPos.x + dx;
   const ny = playerPos.y + dy;
+  if(currentScene==="home" && dx===0 && dy<0 && playerPos.y===1 && playerPos.x===7){
+    currentScene="prairie"; mapData=MAPS[1].layout.slice(); playerPos={x:7,y:9};
+    document.getElementById("areaTitle").textContent="Prairie de Valbois";
+    document.getElementById("mapHint").textContent="";
+    document.getElementById("exploreLog").textContent="Tu quittes Valbois. Les hautes herbes s'étendent devant toi.";
+    buildMap(); updateExploreUI(); return;
+  }
   if(!isWalkable(nx,ny)){
     document.getElementById("exploreLog").textContent = "Tu ne peux pas passer par là.";
     renderMap();
